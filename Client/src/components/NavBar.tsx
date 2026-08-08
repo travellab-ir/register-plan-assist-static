@@ -14,22 +14,45 @@ const useStyles = makeStyles((theme: Theme) => ({
     margin: 0,
     padding: theme.spacing(0.5),
     paddingRight: theme.spacing(3),
-    paddingLeft: theme.spacing(3)
+    paddingLeft: theme.spacing(3),
+    display: 'flex',
+    alignItems: 'center',
+    [theme.breakpoints.down('xs')]: {
+      paddingRight: theme.spacing(1),
+      paddingLeft: theme.spacing(1)
+    }
   },
+  // No longer absolutely positioned: it now takes its natural place in the
+  // flex row so the layout can't overlap or collide on narrow screens.
+  // On phones the breadcrumb becomes horizontally scrollable instead of
+  // wrapping or overflowing the viewport.
   navigation: {
-    position: 'absolute',
-    left: 86
+    display: 'flex',
+    alignItems: 'center',
+    minWidth: 0,
+    flexShrink: 1,
+    overflowX: 'auto',
+    whiteSpace: 'nowrap',
+    scrollbarWidth: 'none',
+    '&::-webkit-scrollbar': {
+      display: 'none'
+    }
+  },
+  navigationItem: {
+    flexShrink: 0
   },
   navigationNextIcon: {
     position: 'relative',
     top: '6px',
-    margin: theme.spacing(0, 0.5)
+    margin: theme.spacing(0, 0.5),
+    flexShrink: 0
   },
   tools: {
     float: 'right'
   },
   grow: {
-    flexGrow: 1
+    flexGrow: 1,
+    minWidth: theme.spacing(2)
   }
 }));
 
@@ -64,11 +87,11 @@ const NavBar: FC<NavBarProps> = ({ children, backLink, navBarLinks, backTitle })
             <Fragment key={index}>
               {index > 0 && <NavigateNextIcon classes={{ root: classes.navigationNextIcon }} />}
               {navBarLink.link ? (
-                <LinkTypography variant="h6" display="inline" to={navBarLink.link as string}>
+                <LinkTypography classes={{ root: classes.navigationItem }} variant="h6" display="inline" to={navBarLink.link as string}>
                   {navBarLink.title}
                 </LinkTypography>
               ) : (
-                <Typography variant="h6" display="inline">
+                <Typography classes={{ root: classes.navigationItem }} variant="h6" display="inline">
                   {navBarLink.title}
                 </Typography>
               )}
