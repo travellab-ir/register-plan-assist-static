@@ -1,12 +1,21 @@
-import { createMuiTheme } from '@material-ui/core';
+import { createMuiTheme, responsiveFontSizes } from '@material-ui/core';
 import { purple } from '@material-ui/core/colors';
 
+// Breakpoints kept close to MUI defaults but named explicitly so every
+// component in the app reasons about the same three tiers instead of
+// inventing its own pixel thresholds.
+//   mobile: 0-599   tablet: 600-959   desktop: 960+
 let theme = createMuiTheme({
+  breakpoints: {
+    values: { xs: 0, sm: 600, md: 960, lg: 1280, xl: 1920 }
+  },
   palette: {
     primary: { main: '#596BEC' },
     secondary: { main: '#00BCD4' }
   }
 });
+
+theme = responsiveFontSizes(theme);
 
 declare module '@material-ui/core/styles/createPalette' {
   interface Palette {
