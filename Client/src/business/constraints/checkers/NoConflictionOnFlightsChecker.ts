@@ -1,6 +1,6 @@
 import Checker from 'src/business/constraints/Checker';
 import Preplan from 'src/business/preplan/Preplan';
-import ConstraintSystem from 'src/business/constraints/ConstraintSystem';
+import ConstraintSystem, { SuperFlightLeg } from 'src/business/constraints/ConstraintSystem';
 import { ConstraintTemplate } from 'src/business/master-data';
 
 export default class NoConflictionOnFlightsChecker extends Checker {
@@ -9,32 +9,27 @@ export default class NoConflictionOnFlightsChecker extends Checker {
   }
 
   check(): void {
-    // return Object.keys(this.constraintSystem.flightEventsByRegister).flatMap(
-    //   registerId =>
-    //     this.constraintSystem.flightEventsByRegister[registerId].reduce<{ superFlights: SuperFlightLeg[]; objections: Objection[] }>(
-    //       (result, e) => {
-    //         if (e.starting) {
-    //           result.superFlights.forEach(
-    //             s =>
-    //               !(e.superFlightLeg.nextRound && s.nextRound) &&
-    //               result.objections.push(
-    //                 e.superFlightLeg.flightLeg.issueObjection(
-    //                   'ERROR',
-    //                   12345,
-    //                   this,
-    //                   constraintMarker =>
-    //                     `${constraintMarker} and ${e.superFlightLeg.flightLeg.marker} conflicts with ${s.flightLeg.label}, ${s.flightLeg.departureAirport.name}-${s.flightLeg.arrivalAirport.name}.`
-    //                 )
-    //               )
-    //           );
-    //           result.superFlights.push(e.superFlightLeg);
-    //         } else {
-    //           result.superFlights.remove(e.superFlightLeg);
-    //         }
-    //         return result;
-    //       },
-    //       { superFlights: [], objections: [] }
-    //     ).objections
-    // );
+    Object.keys(this.constraintSystem.flightLegEventsByAircraftRegisterId).forEach(aircraftRegisterId => {
+      const openSuperFlightLegs: SuperFlightLeg[] = [];
+      this.constraintSystem.flightLegEventsByAircraftRegisterId[aircraftRegisterId].forEach(e => {
+        if (e.starting) {
+          openSuperFlightLegs.forEach(s => {
+            // Both copies are the shifted (second) round of the same underlying pair, so the
+            // conflict was already reported once when the first-round copies overlapped.
+            if (e.superFlightLeg.secondRound && s.secondRound) return;
+            this.issueObjection(
+              e.superFlightLeg.flightLeg,
+              'ERROR',
+              12345,
+              constraintMarker =>
+                `${constraintMarker} and ${e.superFlightLeg.flightLeg.marker} conflicts with ${s.flightLeg.label}, ${s.flightLeg.departureAirport.name}-${s.flightLeg.arrivalAirport.name}.`
+            );
+          });
+          openSuperFlightLegs.push(e.superFlightLeg);
+        } else {
+          openSuperFlightLegs.remove(e.superFlightLeg);
+        }
+      });
+    });
   }
 }
