@@ -1,6 +1,6 @@
 import React, { FC, useState, Fragment, useContext } from 'react';
 import { Theme, Table, TableHead, TableBody, TableCell, TableRow, Typography, IconButton, FormControl, Select, Collapse, FormHelperText } from '@material-ui/core';
-import { Clear as RemoveIcon, Check as CheckIcon } from '@material-ui/icons';
+import { X as RemoveIcon, Check as CheckIcon } from 'lucide-react';
 import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 import MasterData from 'src/business/master-data';

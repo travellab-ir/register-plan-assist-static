@@ -1,7 +1,7 @@
 import React, { FC, useState, Fragment, useRef, useMemo, useContext, useEffect } from 'react';
 import { Theme, MenuItem, MenuList, ClickAwayListener, Paper, ListItemIcon, Typography, Divider } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { Check as CheckIcon } from '@material-ui/icons';
+import { Check as CheckIcon } from 'lucide-react';
 import Daytime from '@core/types/Daytime';
 import PreplanAircraftRegister from 'src/business/preplan/PreplanAircraftRegister';
 import { DataGroup, DataItem, TimelineOptions, Timeline } from 'vis-timeline';
@@ -923,7 +923,7 @@ const TimelineView: FC<TimelineViewProps> = ({
                       {flightContextMenuModel.flightPack!.freezed === true ? (
                         <CheckIcon />
                       ) : flightContextMenuModel.flightPack!.freezed === undefined ? (
-                        <CheckIcon classes={{ root: classes.semiCheckIcon }} />
+                        <CheckIcon className={classes.semiCheckIcon} />
                       ) : (
                         <span />
                       )}
@@ -940,7 +940,7 @@ const TimelineView: FC<TimelineViewProps> = ({
                       {flightContextMenuModel.flightPack!.required === true ? (
                         <CheckIcon />
                       ) : flightContextMenuModel.flightPack!.required === undefined ? (
-                        <CheckIcon classes={{ root: classes.semiCheckIcon }} />
+                        <CheckIcon className={classes.semiCheckIcon} />
                       ) : (
                         <span />
                       )}

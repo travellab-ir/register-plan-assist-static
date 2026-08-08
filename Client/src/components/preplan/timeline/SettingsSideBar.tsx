@@ -2,7 +2,7 @@ import React, { FC, useState, useContext } from 'react';
 import { Theme, FormControlLabel, Checkbox, Typography, ExpansionPanel, ExpansionPanelSummary, ExpansionPanelDetails } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import SideBarContainer from 'src/components/preplan/timeline/SideBarContainer';
-import { ExpandMore as ExpandMoreIcon } from '@material-ui/icons';
+import { ChevronDown as ExpandMoreIcon } from 'lucide-react';
 import persistant from 'src/utils/persistant';
 import { PreplanSettingModel } from '@core/models/RpaUserSettingModel';
 import MasterData, { Airport } from 'src/business/master-data';

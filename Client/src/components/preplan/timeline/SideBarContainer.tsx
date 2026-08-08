@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { Theme, Typography, Button, Grid, CircularProgress, Paper } from '@material-ui/core';
-import { Add as AddIcon } from '@material-ui/icons';
+import { Plus as AddIcon } from 'lucide-react';
 import { makeStyles } from '@material-ui/styles';
 import classNames from 'classnames';
 
