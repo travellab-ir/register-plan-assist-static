@@ -20,14 +20,22 @@ import chroma from 'chroma-js';
 import { Airport } from 'src/business/master-data';
 
 const useStyles = makeStyles((theme: Theme) => ({
-  flightDates: {
+  flightDatesScrollContainer: {
     width: '100%',
+    overflowX: 'auto'
+  },
+  flightDates: {
+    minWidth: '100%',
     display: 'flex'
   },
   flightDate: {
-    width: 10,
+    flex: '1 0 26px',
+    minWidth: 26,
+    '@media (pointer: coarse)': {
+      flex: '1 0 40px',
+      minWidth: 40
+    },
     textAlign: 'center',
-    flexGrow: 1,
     position: 'relative',
     borderWidth: 1,
     borderRightWidth: 0,
@@ -75,6 +83,10 @@ const useStyles = makeStyles((theme: Theme) => ({
       .alpha(0.4)
       .hex(),
     borderColor: theme.palette.secondary.dark
+  },
+  tableScrollContainer: {
+    width: '100%',
+    overflowX: 'auto'
   }
 }));
 
@@ -250,40 +262,42 @@ const FlightModal = createModal<FlightModalState, FlightModalProps>(({ state, on
       body={({ handleKeyboardEvent }) => (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <div className={classes.flightDates}>
-              {viewState.dates.map((date, index) => {
-                const flightDate = preplan.weeks.all[index].startDate.clone().addDays(state.day);
+            <div className={classes.flightDatesScrollContainer}>
+              <div className={classes.flightDates}>
+                {viewState.dates.map((date, index) => {
+                  const flightDate = preplan.weeks.all[index].startDate.clone().addDays(state.day);
 
-                return (
-                  <div
-                    key={index}
-                    className={classNames(classes.flightDate, {
-                      [classes.flightDateDisabled]: date.disabled,
-                      [classes.flightDateSelected]: date.selected
-                    })}
-                    title={`Flight at ${flightDate.format('d')}`}
-                    onClick={() => {
-                      if (date.disabled) return;
+                  return (
+                    <div
+                      key={index}
+                      className={classNames(classes.flightDate, {
+                        [classes.flightDateDisabled]: date.disabled,
+                        [classes.flightDateSelected]: date.selected
+                      })}
+                      title={`Flight at ${flightDate.format('d')}`}
+                      onClick={() => {
+                        if (date.disabled) return;
 
-                      const selectedFlights = viewState.dates
-                        .map((d, dayIndex) => {
-                          if ((dayIndex === index && date.selected) || (dayIndex !== index && !d.selected)) return undefined;
-                          return flights.find(
-                            f =>
-                              dataTypes.utcDate.convertBusinessToView(f.date) ===
-                              dataTypes.utcDate.convertBusinessToView(new Date(preplan.weeks.all[dayIndex].startDate).addDays(state.day))
-                          );
-                        })
-                        .filter(Boolean) as Flight[];
+                        const selectedFlights = viewState.dates
+                          .map((d, dayIndex) => {
+                            if ((dayIndex === index && date.selected) || (dayIndex !== index && !d.selected)) return undefined;
+                            return flights.find(
+                              f =>
+                                dataTypes.utcDate.convertBusinessToView(f.date) ===
+                                dataTypes.utcDate.convertBusinessToView(new Date(preplan.weeks.all[dayIndex].startDate).addDays(state.day))
+                            );
+                          })
+                          .filter(Boolean) as Flight[];
 
-                      setViewState(calculateViewState(selectedFlights, preplan, flights, state));
-                    }}
-                  >
-                    {formatDate(flightDate, true)}
-                    <div className={classes.flightDateHover} />
-                  </div>
-                );
-              })}
+                        setViewState(calculateViewState(selectedFlights, preplan, flights, state));
+                      }}
+                    >
+                      {formatDate(flightDate, true)}
+                      <div className={classes.flightDateHover} />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </Grid>
           <Grid item xs={12}>
@@ -301,63 +315,65 @@ const FlightModal = createModal<FlightModalState, FlightModalProps>(({ state, on
             />
           </Grid>
           <Grid item xs={12}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell align="center">#</TableCell>
-                  <TableCell align="center">Flight Number</TableCell>
-                  <TableCell align="center">Departure</TableCell>
-                  <TableCell align="center">Arrival</TableCell>
-                  <TableCell align="center">Block Time</TableCell>
-                  <TableCell align="center">STD</TableCell>
-                  {state.flightRequirement.localTime ? <TableCell align="center"></TableCell> : <Fragment />}
-                  <TableCell align="center">STA</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {flights[0].legs.map((l, index) => (
-                  <TableRow key={index}>
-                    <TableCell align="center">{index + 1}</TableCell>
-                    <TableCell align="center">{dataTypes.flightNumber.convertBusinessToView(l.flightNumber)}</TableCell>
-                    <TableCell align="center">{dataTypes.airport.convertBusinessToView(l.departureAirport)}</TableCell>
-                    <TableCell align="center">{dataTypes.airport.convertBusinessToView(l.arrivalAirport)}</TableCell>
-                    <TableCell align="center">{l.blockTime.toString('HH:mm', true)}</TableCell>
-                    <TableCell align="center">
-                      <RefiningTextField
-                        fullWidth
-                        dataType={dataTypes.daytime}
-                        value={viewState.legs[index]?.std ?? ''}
-                        onChange={({ target: { value: std } }) =>
-                          setViewState({
-                            ...viewState,
-                            legs: [
-                              ...viewState.legs.slice(0, index),
-                              {
-                                ...viewState.legs[index],
-                                std
-                              },
-                              ...viewState.legs.slice(index + 1)
-                            ]
-                          })
-                        }
-                        onKeyDown={handleKeyboardEvent}
-                        error={errors.stds?.[index] !== undefined}
-                        helperText={errors.stds?.[index]}
-                        disabled={viewState.legs.length === 0}
-                      />
-                    </TableCell>
-                    {state.flightRequirement.localTime ? <TableCell align="center">Local Time</TableCell> : <Fragment />}
-                    <TableCell align="center">
-                      {dataTypes.daytime.checkView(viewState.legs[index]?.std) ? (
-                        new Daytime(dataTypes.daytime.convertViewToModel(viewState.legs[index].std) + l.blockTime.minutes).toString('HH:mm', true)
-                      ) : (
-                        <Fragment>&mdash;</Fragment>
-                      )}
-                    </TableCell>
+            <div className={classes.tableScrollContainer}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">#</TableCell>
+                    <TableCell align="center">Flight Number</TableCell>
+                    <TableCell align="center">Departure</TableCell>
+                    <TableCell align="center">Arrival</TableCell>
+                    <TableCell align="center">Block Time</TableCell>
+                    <TableCell align="center">STD</TableCell>
+                    {state.flightRequirement.localTime ? <TableCell align="center"></TableCell> : <Fragment />}
+                    <TableCell align="center">STA</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {flights[0].legs.map((l, index) => (
+                    <TableRow key={index}>
+                      <TableCell align="center">{index + 1}</TableCell>
+                      <TableCell align="center">{dataTypes.flightNumber.convertBusinessToView(l.flightNumber)}</TableCell>
+                      <TableCell align="center">{dataTypes.airport.convertBusinessToView(l.departureAirport)}</TableCell>
+                      <TableCell align="center">{dataTypes.airport.convertBusinessToView(l.arrivalAirport)}</TableCell>
+                      <TableCell align="center">{l.blockTime.toString('HH:mm', true)}</TableCell>
+                      <TableCell align="center">
+                        <RefiningTextField
+                          fullWidth
+                          dataType={dataTypes.daytime}
+                          value={viewState.legs[index]?.std ?? ''}
+                          onChange={({ target: { value: std } }) =>
+                            setViewState({
+                              ...viewState,
+                              legs: [
+                                ...viewState.legs.slice(0, index),
+                                {
+                                  ...viewState.legs[index],
+                                  std
+                                },
+                                ...viewState.legs.slice(index + 1)
+                              ]
+                            })
+                          }
+                          onKeyDown={handleKeyboardEvent}
+                          error={errors.stds?.[index] !== undefined}
+                          helperText={errors.stds?.[index]}
+                          disabled={viewState.legs.length === 0}
+                        />
+                      </TableCell>
+                      {state.flightRequirement.localTime ? <TableCell align="center">Local Time</TableCell> : <Fragment />}
+                      <TableCell align="center">
+                        {dataTypes.daytime.checkView(viewState.legs[index]?.std) ? (
+                          new Daytime(dataTypes.daytime.convertViewToModel(viewState.legs[index].std) + l.blockTime.minutes).toString('HH:mm', true)
+                        ) : (
+                          <Fragment>&mdash;</Fragment>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Grid>
         </Grid>
       )}

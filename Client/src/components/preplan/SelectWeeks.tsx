@@ -13,13 +13,22 @@ const useStyles = makeStyles((theme: Theme) => ({
     height: theme.spacing(10.5),
     padding: theme.spacing(1, 4)
   },
-  weeks: {
+  weeksScrollContainer: {
     width: '100%',
+    overflowX: 'auto'
+  },
+  weeks: {
+    minWidth: '100%',
     display: 'flex'
   },
   week: {
-    width: 20,
-    flexGrow: 1,
+    flex: '1 0 20px',
+    minWidth: 20,
+    touchAction: 'none',
+    '@media (pointer: coarse)': {
+      flex: '1 0 40px',
+      minWidth: 40
+    },
     position: 'relative',
     borderWidth: 1,
     borderStyle: 'solid',
@@ -143,103 +152,138 @@ const SelectWeeks: FC<SelectWeeksProps> = ({ preplan: externalPreplan, includeSi
 
   return (
     <div className={classes.root}>
-      <div className={classes.weeks}>
-        {preplan.weeks.chunks.flatMap((chunk, chunkIndex) =>
-          chunk.all.map((week, chunkWeekIndex) => {
-            const weekIndex = preplan.weeks.all.indexOf(week);
-            const weekType = includeSides
-              ? weekIndex < weekSelection.previousStartIndex || weekIndex >= weekSelection.nextEndIndex
+      <div className={classes.weeksScrollContainer}>
+        <div className={classes.weeks}>
+          {preplan.weeks.chunks.flatMap((chunk, chunkIndex) =>
+            chunk.all.map((week, chunkWeekIndex) => {
+              const weekIndex = preplan.weeks.all.indexOf(week);
+              const weekType = includeSides
+                ? weekIndex < weekSelection.previousStartIndex || weekIndex >= weekSelection.nextEndIndex
+                  ? 'FREE'
+                  : weekIndex >= weekSelection.startIndex && weekIndex < weekSelection.endIndex
+                  ? 'SELECTION'
+                  : 'SIDE'
+                : weekIndex < weekSelection.startIndex || weekIndex >= weekSelection.endIndex
                 ? 'FREE'
-                : weekIndex >= weekSelection.startIndex && weekIndex < weekSelection.endIndex
-                ? 'SELECTION'
-                : 'SIDE'
-              : weekIndex < weekSelection.startIndex || weekIndex >= weekSelection.endIndex
-              ? 'FREE'
-              : 'SELECTION';
-            const chunkType = includeSides
-              ? chunk.endIndex <= weekSelection.previousStartIndex || chunk.startIndex >= weekSelection.nextEndIndex
-                ? 'FREE'
-                : chunk.endIndex <= weekSelection.endIndex && chunk.startIndex >= weekSelection.startIndex
-                ? 'SELECTION'
+                : 'SELECTION';
+              const chunkType = includeSides
+                ? chunk.endIndex <= weekSelection.previousStartIndex || chunk.startIndex >= weekSelection.nextEndIndex
+                  ? 'FREE'
+                  : chunk.endIndex <= weekSelection.endIndex && chunk.startIndex >= weekSelection.startIndex
+                  ? 'SELECTION'
+                  : chunk.endIndex <= weekSelection.startIndex || chunk.startIndex >= weekSelection.endIndex
+                  ? 'SIDE'
+                  : 'MIXED'
                 : chunk.endIndex <= weekSelection.startIndex || chunk.startIndex >= weekSelection.endIndex
-                ? 'SIDE'
-                : 'MIXED'
-              : chunk.endIndex <= weekSelection.startIndex || chunk.startIndex >= weekSelection.endIndex
-              ? 'FREE'
-              : 'SELECTION';
-            return (
-              <div
-                key={weekIndex}
-                title={`Week from ${week.startDate.format('d')} to ${week.endDate.format('d')}\nChunk from ${chunk.startDate.format('d')} to ${chunk.endDate.format('d')}`}
-                className={classNames(
-                  classes.week,
-                  {
-                    [classes.chuckStart]: chunkWeekIndex === 0,
-                    [classes.chuckEnd]: chunkWeekIndex === chunk.all.length - 1
-                  },
-                  {
-                    [classes.weekFree]: weekType === 'FREE',
-                    [classes.weekSide]: weekType === 'SIDE',
-                    [classes.weekSelection]: weekType === 'SELECTION'
-                  },
-                  {
-                    [classes.chunkFree]: chunkType === 'FREE',
-                    [classes.chunkSide]: chunkType === 'SIDE',
-                    [classes.chunkMixed]: chunkType === 'MIXED',
-                    [classes.chunkSelection]: chunkType === 'SELECTION'
-                  }
-                )}
-                onDoubleClick={() => {
-                  const weekSelection: WeekSelection = {
-                    previousStartIndex: chunk.startIndex === 0 ? chunk.startIndex : chunk.startIndex - 1,
-                    startIndex: chunk.startIndex,
-                    endIndex: chunk.endIndex,
-                    nextEndIndex: chunk.endIndex === preplan.weeks.all.length ? chunk.endIndex : chunk.endIndex + 1
-                  };
-                  setWeekSelection(weekSelection);
-                  onSelectWeeks(weekSelection);
-                }}
-                onMouseDown={e => {
-                  if (e.buttons !== 1 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
+                ? 'FREE'
+                : 'SELECTION';
+              return (
+                <div
+                  key={weekIndex}
+                  data-week-index={weekIndex}
+                  title={`Week from ${week.startDate.format('d')} to ${week.endDate.format('d')}\nChunk from ${chunk.startDate.format('d')} to ${chunk.endDate.format('d')}`}
+                  className={classNames(
+                    classes.week,
+                    {
+                      [classes.chuckStart]: chunkWeekIndex === 0,
+                      [classes.chuckEnd]: chunkWeekIndex === chunk.all.length - 1
+                    },
+                    {
+                      [classes.weekFree]: weekType === 'FREE',
+                      [classes.weekSide]: weekType === 'SIDE',
+                      [classes.weekSelection]: weekType === 'SELECTION'
+                    },
+                    {
+                      [classes.chunkFree]: chunkType === 'FREE',
+                      [classes.chunkSide]: chunkType === 'SIDE',
+                      [classes.chunkMixed]: chunkType === 'MIXED',
+                      [classes.chunkSelection]: chunkType === 'SELECTION'
+                    }
+                  )}
+                  onDoubleClick={() => {
+                    const weekSelection: WeekSelection = {
+                      previousStartIndex: chunk.startIndex === 0 ? chunk.startIndex : chunk.startIndex - 1,
+                      startIndex: chunk.startIndex,
+                      endIndex: chunk.endIndex,
+                      nextEndIndex: chunk.endIndex === preplan.weeks.all.length ? chunk.endIndex : chunk.endIndex + 1
+                    };
+                    setWeekSelection(weekSelection);
+                    onSelectWeeks(weekSelection);
+                  }}
+                  onMouseDown={e => {
+                    if (e.buttons !== 1 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
+                      startingSelectionIndex(undefined);
+                      return;
+                    }
+                    startingSelectionIndex(weekIndex);
+                    setWeekSelection({
+                      previousStartIndex: Math.max(weekIndex - 1, 0),
+                      startIndex: weekIndex,
+                      endIndex: weekIndex + 1,
+                      nextEndIndex: Math.min(weekIndex + 2, preplan.weeks.all.length)
+                    });
+                  }}
+                  onMouseMove={e => {
+                    if (startingSelectionIndex() === undefined) return;
+                    if (e.buttons !== 1 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
+                      startingSelectionIndex(undefined);
+                      return;
+                    }
+                    const firstIndex = Math.min(startingSelectionIndex()!, weekIndex);
+                    const lastIndex = Math.max(startingSelectionIndex()!, weekIndex);
+                    setWeekSelection({
+                      previousStartIndex: Math.max(firstIndex - 1, 0),
+                      startIndex: firstIndex,
+                      endIndex: lastIndex + 1,
+                      nextEndIndex: Math.min(lastIndex + 2, preplan.weeks.all.length)
+                    });
+                  }}
+                  onMouseUp={e => {
+                    if (startingSelectionIndex() === undefined) return;
                     startingSelectionIndex(undefined);
-                    return;
-                  }
-                  startingSelectionIndex(weekIndex);
-                  setWeekSelection({
-                    previousStartIndex: Math.max(weekIndex - 1, 0),
-                    startIndex: weekIndex,
-                    endIndex: weekIndex + 1,
-                    nextEndIndex: Math.min(weekIndex + 2, preplan.weeks.all.length)
-                  });
-                }}
-                onMouseMove={e => {
-                  if (startingSelectionIndex() === undefined) return;
-                  if (e.buttons !== 1 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
+                    if (e.buttons !== 0 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
+                    onSelectWeeks(weekSelection);
+                  }}
+                  onTouchStart={e => {
+                    const touch = e.touches[0];
+                    if (!touch) return;
+                    startingSelectionIndex(weekIndex);
+                    setWeekSelection({
+                      previousStartIndex: Math.max(weekIndex - 1, 0),
+                      startIndex: weekIndex,
+                      endIndex: weekIndex + 1,
+                      nextEndIndex: Math.min(weekIndex + 2, preplan.weeks.all.length)
+                    });
+                  }}
+                  onTouchMove={e => {
+                    if (startingSelectionIndex() === undefined) return;
+                    const touch = e.touches[0];
+                    if (!touch) return;
+                    const touchedElement = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('[data-week-index]');
+                    if (!touchedElement) return;
+                    const touchedWeekIndex = Number(touchedElement.getAttribute('data-week-index'));
+                    const firstIndex = Math.min(startingSelectionIndex()!, touchedWeekIndex);
+                    const lastIndex = Math.max(startingSelectionIndex()!, touchedWeekIndex);
+                    setWeekSelection({
+                      previousStartIndex: Math.max(firstIndex - 1, 0),
+                      startIndex: firstIndex,
+                      endIndex: lastIndex + 1,
+                      nextEndIndex: Math.min(lastIndex + 2, preplan.weeks.all.length)
+                    });
+                  }}
+                  onTouchEnd={() => {
+                    if (startingSelectionIndex() === undefined) return;
                     startingSelectionIndex(undefined);
-                    return;
-                  }
-                  const firstIndex = Math.min(startingSelectionIndex()!, weekIndex);
-                  const lastIndex = Math.max(startingSelectionIndex()!, weekIndex);
-                  setWeekSelection({
-                    previousStartIndex: Math.max(firstIndex - 1, 0),
-                    startIndex: firstIndex,
-                    endIndex: lastIndex + 1,
-                    nextEndIndex: Math.min(lastIndex + 2, preplan.weeks.all.length)
-                  });
-                }}
-                onMouseUp={e => {
-                  if (startingSelectionIndex() === undefined) return;
-                  startingSelectionIndex(undefined);
-                  if (e.buttons !== 0 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
-                  onSelectWeeks(weekSelection);
-                }}
-              >
-                {formatDate(week.startDate)}
-                <div className={classes.weekHover} />
-              </div>
-            );
-          })
-        )}
+                    onSelectWeeks(weekSelection);
+                  }}
+                >
+                  {formatDate(week.startDate)}
+                  <div className={classes.weekHover} />
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
       <div className={classes.slider}>
         <Slider
