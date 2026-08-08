@@ -1,6 +1,6 @@
 import React, { useState, useContext, Fragment, useEffect } from 'react';
 import { Theme, Typography, TableBody, Table, TableRow, TableCell, IconButton } from '@material-ui/core';
-import { Check as CheckIcon, Clear as ClearIcon } from '@material-ui/icons';
+import { Check as CheckIcon, X as ClearIcon } from 'lucide-react';
 import { makeStyles } from '@material-ui/styles';
 import BaseModal, { BaseModalProps, useModalState, createModal } from 'src/components/BaseModal';
 import Preplan from 'src/business/preplan/Preplan';
