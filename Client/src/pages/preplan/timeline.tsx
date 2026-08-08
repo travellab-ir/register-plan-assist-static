@@ -33,6 +33,8 @@ import Weekday from '@core/types/Weekday';
 import useProperty from 'src/utils/useProperty';
 import SettingsSideBar from 'src/components/preplan/timeline/SettingsSideBar';
 import persistant from 'src/utils/persistant';
+import { useIsCompact } from 'src/utils/useResponsive';
+import MobileTimelineAgenda from 'src/components/preplan/timeline/MobileTimelineAgenda';
 
 const useStyles = makeStyles((theme: Theme) => ({
   sideBarBackdrop: {
@@ -40,7 +42,11 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   sideBarPaper: {
     top: 105,
-    height: 'calc(100% - 105px)'
+    height: 'calc(100% - 105px)',
+    maxWidth: '100vw',
+    [theme.breakpoints.down('xs')]: {
+      width: '100%'
+    }
   },
   selectWeekWrapper: {
     margin: 0,
@@ -170,6 +176,7 @@ const TimelinePage: FC<TimelinePageProps> = ({ onObjectionTargetClick, onEditFli
 
   const snackbar = useSnackbar();
   const classes = useStyles();
+  const isCompact = useIsCompact();
 
   return (
     <Fragment>
@@ -272,88 +279,94 @@ const TimelinePage: FC<TimelinePageProps> = ({ onObjectionTargetClick, onEditFli
         <div className={classes.selectWeekWrapper}>
           <SelectWeeks includeSides={true} weekSelection={weekSelection} onSelectWeeks={weekSelection => setWeekSelection(weekSelection)} />
         </div>
-        <TimelineView
-          week={week}
-          flightViews={flightViews}
-          previous={
-            !settings.viewOptions.extraDays
-              ? undefined
-              : {
-                  week: previousWeek,
-                  numberOfDays: settings.viewOptions.numberOfExtraDays,
-                  flightViews: previousFlightViews
-                }
-          }
-          next={
-            !settings.viewOptions.extraDays
-              ? undefined
-              : {
-                  week: nextWeek,
-                  numberOfDays: settings.viewOptions.numberOfExtraDays,
-                  flightViews: nextFlightViews
-                }
-          }
-          selectedFlightView={timelineViewState.selectedFlightView}
-          onSelectFlightView={flightView => setTimelineViewState({ ...timelineViewState, selectedFlightView: flightView })}
-          onEditFlightRequirement={onEditFlightRequirement}
-          onEditDayFlightRequirement={onEditDayFlightRequirement}
-          onEditFlight={onEditFlightView}
-          onFlightViewDragAndDrop={async (flightView, deltaStd, newAircraftRegister, allWeekdays) => {
-            setTimelineViewState({ ...timelineViewState, loading: true });
-            try {
-              const flightModels: FlightModel[] = preplan.flights
-                .filter(f => f.flightRequirement.id === flightView.flightRequirement.id)
-                .map(f =>
-                  flightView.flights.includes(f) || allWeekdays
-                    ? f.extractModel(flightModel => ({
-                        ...flightModel,
-                        aircraftRegisterId:
-                          newAircraftRegister?.id !== flightView.aircraftRegister?.id || f.day === flightView.day
-                            ? dataTypes.preplanAircraftRegister(preplan.aircraftRegisters).convertBusinessToModelOptional(newAircraftRegister)
-                            : flightModel.aircraftRegisterId,
-                        legs: flightModel.legs.map<FlightLegModel>(l => ({
-                          ...l,
-                          std: l.std + deltaStd
-                        }))
-                      }))
-                    : f.extractModel()
-                );
-
-              const newPreplanDataModel = await FlightService.edit(preplan.id, ...flightModels);
-
-              // const newFlightRequirementModel = flightView.flightRequirement.extractModel(flightRequirementModel => ({
-              //   ...flightRequirementModel,
-              //   days: flightRequirementModel.days.map<DayFlightRequirementModel>(d =>
-              //     d.day === flightView.day || allWeekdays
-              //       ? {
-              //           ...d,
-              //           route: d.route.map<DayFlightRequirementLegModel>(l => ({
-              //             ...l,
-              //             stdLowerBound: l.stdLowerBound + deltaStd,
-              //             stdUpperBound: undefined
-              //           }))
-              //         }
-              //       : d
-              //   )
-              // }));
-              // const newPreplanModel = await FlightRequirementService.edit(preplan.id, newFlightRequirementModel, flightModels);
-
-              await reloadPreplan(newPreplanDataModel);
-            } catch (reason) {
-              snackbar.enqueueSnackbar(String(reason), { variant: 'error' });
-              await reloadPreplan();
+        {isCompact ? (
+          <MobileTimelineAgenda flightViews={flightViews} onEditFlightRequirement={onEditFlightRequirement} onEditFlight={onEditFlightView} />
+        ) : (
+          <TimelineView
+            week={week}
+            flightViews={flightViews}
+            previous={
+              !settings.viewOptions.extraDays
+                ? undefined
+                : {
+                    week: previousWeek,
+                    numberOfDays: settings.viewOptions.numberOfExtraDays,
+                    flightViews: previousFlightViews
+                  }
             }
-            setTimelineViewState(timelineViewState => ({ ...timelineViewState, loading: false }));
-          }}
-          onFlightViewMouseHover={flightView => setStatusBarProps({ mode: 'FLIGHT_VIEW', flightView })}
-          onFreeSpaceMouseHover={(aircraftRegister, previousFlightView, nextFlightView) =>
-            setStatusBarProps({ mode: 'FREE_SPACE', aircraftRegister, previousFlightView, nextFlightView })
-          }
-          onNowhereMouseHover={() => setStatusBarProps({})}
+            next={
+              !settings.viewOptions.extraDays
+                ? undefined
+                : {
+                    week: nextWeek,
+                    numberOfDays: settings.viewOptions.numberOfExtraDays,
+                    flightViews: nextFlightViews
+                  }
+            }
+            selectedFlightView={timelineViewState.selectedFlightView}
+            onSelectFlightView={flightView => setTimelineViewState({ ...timelineViewState, selectedFlightView: flightView })}
+            onEditFlightRequirement={onEditFlightRequirement}
+            onEditDayFlightRequirement={onEditDayFlightRequirement}
+            onEditFlight={onEditFlightView}
+            onFlightViewDragAndDrop={async (flightView, deltaStd, newAircraftRegister, allWeekdays) => {
+              setTimelineViewState({ ...timelineViewState, loading: true });
+              try {
+                const flightModels: FlightModel[] = preplan.flights
+                  .filter(f => f.flightRequirement.id === flightView.flightRequirement.id)
+                  .map(f =>
+                    flightView.flights.includes(f) || allWeekdays
+                      ? f.extractModel(flightModel => ({
+                          ...flightModel,
+                          aircraftRegisterId:
+                            newAircraftRegister?.id !== flightView.aircraftRegister?.id || f.day === flightView.day
+                              ? dataTypes.preplanAircraftRegister(preplan.aircraftRegisters).convertBusinessToModelOptional(newAircraftRegister)
+                              : flightModel.aircraftRegisterId,
+                          legs: flightModel.legs.map<FlightLegModel>(l => ({
+                            ...l,
+                            std: l.std + deltaStd
+                          }))
+                        }))
+                      : f.extractModel()
+                  );
+
+                const newPreplanDataModel = await FlightService.edit(preplan.id, ...flightModels);
+
+                // const newFlightRequirementModel = flightView.flightRequirement.extractModel(flightRequirementModel => ({
+                //   ...flightRequirementModel,
+                //   days: flightRequirementModel.days.map<DayFlightRequirementModel>(d =>
+                //     d.day === flightView.day || allWeekdays
+                //       ? {
+                //           ...d,
+                //           route: d.route.map<DayFlightRequirementLegModel>(l => ({
+                //             ...l,
+                //             stdLowerBound: l.stdLowerBound + deltaStd,
+                //             stdUpperBound: undefined
+                //           }))
+                //         }
+                //       : d
+                //   )
+                // }));
+                // const newPreplanModel = await FlightRequirementService.edit(preplan.id, newFlightRequirementModel, flightModels);
+
+                await reloadPreplan(newPreplanDataModel);
+              } catch (reason) {
+                snackbar.enqueueSnackbar(String(reason), { variant: 'error' });
+                await reloadPreplan();
+              }
+              setTimelineViewState(timelineViewState => ({ ...timelineViewState, loading: false }));
+            }}
+            onFlightViewMouseHover={flightView => setStatusBarProps({ mode: 'FLIGHT_VIEW', flightView })}
+            onFreeSpaceMouseHover={(aircraftRegister, previousFlightView, nextFlightView) =>
+              setStatusBarProps({ mode: 'FREE_SPACE', aircraftRegister, previousFlightView, nextFlightView })
+            }
+            onNowhereMouseHover={() => setStatusBarProps({})}
         />
-        <div className={classes.statusBarWrapper}>
-          <StatusBar {...statusBarProps} />
-        </div>
+        )}
+        {!isCompact && (
+          <div className={classes.statusBarWrapper}>
+            <StatusBar {...statusBarProps} />
+          </div>
+        )}
       </div>
 
       <PerplanVersionsModal state={preplanVersionsModalState} onClose={closePreplanVersionsModal} />
