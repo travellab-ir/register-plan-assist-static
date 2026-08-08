@@ -1,10 +1,26 @@
 import React, { FC, ReactElement, useState, KeyboardEvent } from 'react';
-import { Theme, DialogTitle, DialogContent, DialogActions, Button, CircularProgress, Paper, Typography } from '@material-ui/core';
+import { Theme, DialogTitle, DialogContent, DialogActions, Button, IconButton, CircularProgress, Paper, Typography } from '@material-ui/core';
+import { Close as CloseIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/styles';
 import DraggableDialog, { DraggableDialogProps } from 'src/components/DraggableDialog';
+import { useIsCompact } from 'src/utils/useResponsive';
 import classNames from 'classnames';
 
 const useStyles = makeStyles((theme: Theme) => ({
+  // Full-screen mobile dialogs (see DraggableDialog) have no backdrop to tap
+  // and, for most modals, no Escape/backdrop-dismiss either — see the
+  // `cancelable` prop below. Reserve room for an explicit close (✕) button
+  // so there's always a visible way out without hunting for the Cancel
+  // action, which can be scrolled off-screen on a tall form.
+  dialogTitleWithClose: {
+    position: 'relative',
+    paddingRight: theme.spacing(7)
+  },
+  closeButton: {
+    position: 'absolute',
+    right: theme.spacing(1),
+    top: theme.spacing(1)
+  },
   progress: {
     position: 'absolute',
     top: '50%',
@@ -101,6 +117,13 @@ const BaseModal: FC<ActualBaseModalProps> = ({ cancelable, title, complexTitle, 
   };
 
   const classes = useStyles();
+  const isCompact = useIsCompact();
+
+  // Same action the Cancel button (or Escape/backdrop, where allowed) already
+  // triggers. Reusing it means the close button can't skip any per-modal
+  // cancel logic or appear when there's genuinely nothing to cancel with.
+  const hasCancelAction = !!actions?.some(action => action.canceler && !action.invisible);
+  const showCloseButton = isCompact && hasCancelAction;
 
   return (
     <DraggableDialog
@@ -111,8 +134,26 @@ const BaseModal: FC<ActualBaseModalProps> = ({ cancelable, title, complexTitle, 
       disableEscapeKeyDown={loading || !cancelable}
       onClose={handleLoader(onClose)}
     >
-      <DialogTitle className={loading ? classes.disable : ''} id="form-dialog-title">
-        {title || complexTitle}
+      <DialogTitle
+        className={classNames(loading ? classes.disable : '', showCloseButton ? classes.dialogTitleWithClose : '')}
+        id="form-dialog-title"
+        disableTypography={showCloseButton}
+      >
+        {showCloseButton ? (
+          // Swap the heading tag DialogTitle would normally render (<h6>) for a
+          // <div> here only, since a heading can't legally contain the block-level
+          // markup some `complexTitle`s are built from. Desktop keeps the default.
+          <Typography variant="h6" component="div">
+            {title || complexTitle}
+          </Typography>
+        ) : (
+          title || complexTitle
+        )}
+        {showCloseButton && (
+          <IconButton className={classes.closeButton} onClick={supplement.cancel} disabled={loading} title="Close" aria-label="close">
+            <CloseIcon />
+          </IconButton>
+        )}
       </DialogTitle>
       <DialogContent>
         <div className={classNames(loading ? classes.disable : '')}>{body(supplement)}</div>
