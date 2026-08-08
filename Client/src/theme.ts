@@ -17,6 +17,26 @@ let theme = createMuiTheme({
 
 theme = responsiveFontSizes(theme);
 
+// A handful of icon buttons across the app (dense toolbars, table/card row
+// actions) use size="small" to save space — that's fine for a mouse, but
+// its ~30px hit area falls short of the ~44px minimum touch target. Rather
+// than hunting down every instance, key this off the pointer itself: any
+// device without a precise pointer (touchscreens, including a touch laptop
+// at desktop width) gets a bigger hit area without changing the visible
+// icon size or affecting mouse users on the same viewport width.
+theme = createMuiTheme(theme, {
+  overrides: {
+    MuiIconButton: {
+      sizeSmall: {
+        '@media (pointer: coarse)': {
+          minWidth: 44,
+          minHeight: 44
+        }
+      }
+    }
+  }
+});
+
 declare module '@material-ui/core/styles/createPalette' {
   interface Palette {
     extraColors: {
