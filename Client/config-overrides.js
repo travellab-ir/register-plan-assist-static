@@ -1,8 +1,18 @@
 const path = require('path');
 const { override, removeModuleScopePlugin, babelInclude, addWebpackAlias, addBabelPlugins } = require('customize-cra');
 
+function fixMjsModules(config) {
+  config.module.rules.unshift({
+    test: /\.mjs$/,
+    include: /node_modules/,
+    type: 'javascript/auto',
+  });
+  return config;
+}
+
 module.exports = {
   webpack: override(
+    fixMjsModules,
     addBabelPlugins('@babel/plugin-proposal-optional-chaining', '@babel/plugin-proposal-nullish-coalescing-operator', '@babel/plugin-transform-modules-commonjs'),
     removeModuleScopePlugin(),
     babelInclude([path.resolve('src'), path.resolve('../Core')]),
