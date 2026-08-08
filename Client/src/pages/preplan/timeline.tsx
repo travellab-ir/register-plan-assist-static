@@ -1,7 +1,7 @@
 import React, { FC, Fragment, useState, useContext, useEffect, useMemo } from 'react';
 import { Theme, IconButton, Badge, Drawer, Portal, CircularProgress, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { DoneAll as FinilizedIcon, Search as SearchIcon, SettingsOutlined as SettingsIcon } from '@material-ui/icons';
+import { CheckCheck as FinilizedIcon, Search as SearchIcon, Settings as SettingsIcon } from 'lucide-react';
 import MahanIcon, { MahanIconType } from 'src/components/MahanIcon';
 import LinkIconButton from 'src/components/LinkIconButton';
 import { NavBarToolsContainerContext, PreplanContext, ReloadPreplanContext } from 'src/pages/preplan';

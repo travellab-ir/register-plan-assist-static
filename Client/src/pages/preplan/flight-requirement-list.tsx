@@ -4,7 +4,7 @@ import { makeStyles } from '@material-ui/styles';
 import { PreplanContext, ReloadPreplanContext } from 'src/pages/preplan';
 import { fade } from '@material-ui/core/styles';
 import Search, { filterOnProperties } from 'src/components/Search';
-import { Add as AddIcon, Clear as ClearIcon, TrendingFlat as TrendingFlatIcon } from '@material-ui/icons';
+import { Plus as AddIcon, X as ClearIcon, ArrowRight as TrendingFlatIcon } from 'lucide-react';
 import classNames from 'classnames';
 import Weekday from '@core/types/Weekday';
 import TablePagination from '@material-ui/core/TablePagination';
@@ -142,7 +142,7 @@ const FlightRequirementListPage: FC<FlightRequirementListPageProps> = React.memo
             <Search outlined onQueryChange={setQuery} />
           </div>
           <IconButton color="primary" title="Add Flight" onClick={onAddFlightRequirement} disabled={preplan.readonly}>
-            <AddIcon fontSize="large" />
+            <AddIcon size={32} />
           </IconButton>
         </div>
       </div>
@@ -232,7 +232,7 @@ const FlightRequirementListPage: FC<FlightRequirementListPageProps> = React.memo
               </Grid>
               <Grid item className={classNames(flightRequirement.ignored && classes.disableOpacityStyle)}>
                 <IconButton size="small" disabled={flightRequirement.ignored || preplan.readonly} onClick={() => onRemoveFlightRequirement(flightRequirement)}>
-                  <ClearIcon fontSize="large" />
+                  <ClearIcon size={32} />
                 </IconButton>
               </Grid>
             </Grid>
