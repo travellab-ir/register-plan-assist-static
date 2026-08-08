@@ -2,13 +2,13 @@ import React, { FC, useRef, useState } from 'react';
 import { Theme, AppBar as MaterialUiAppBar, Toolbar, IconButton, Typography, Menu, MenuItem, ButtonBase, Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import {
-  ArrowBackIos as ArrowBackIcon,
-  Sync as SyncIcon,
-  PersonalVideo as ViewModuleIcon,
-  Fullscreen as FullScreenIcon,
-  FullscreenExit as ExitFullScreenIcon,
-  MoreVert as MoreVertIcon
-} from '@material-ui/icons';
+  ChevronLeft as ArrowBackIcon,
+  RefreshCw as SyncIcon,
+  MonitorPlay as ViewModuleIcon,
+  Maximize as FullScreenIcon,
+  Minimize as ExitFullScreenIcon,
+  MoreVertical as MoreVertIcon
+} from 'lucide-react';
 import classNames from 'classnames';
 import persistant from 'src/utils/persistant';
 import config from 'src/config';
@@ -89,10 +89,10 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
             color="inherit"
             title="Back To Other Module"
           >
-            <ArrowBackIcon classes={{ root: classes.backIcon }} />
+            <ArrowBackIcon className={classes.backIcon} />
           </IconButton>
           <IconButton size={isCompact ? 'small' : 'medium'} color="inherit" onClick={() => window.location.reload()} title={loading ? 'Loading...' : 'Refresh Page'}>
-            <SyncIcon classes={{ root: classNames({ 'animate-spin-reverse': loading }) }} />
+            <SyncIcon className={classNames({ 'animate-spin-reverse': loading })} />
           </IconButton>
 
           <Typography classes={{ root: classNames(classes.textMargin, classes.notSelectable) }} variant="h5" color="inherit" title={config.version}>

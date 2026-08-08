@@ -3,7 +3,7 @@ import { Theme, Paper, Chip, MenuItem, Typography } from '@material-ui/core';
 import TextField, { BaseTextFieldProps } from '@material-ui/core/TextField';
 import { emphasize } from '@material-ui/core/styles/colorManipulator';
 import { makeStyles, useTheme } from '@material-ui/styles';
-import { Cancel as CancelIcon } from '@material-ui/icons';
+import { XCircle as CancelIcon } from 'lucide-react';
 import Select from 'react-select';
 import { Props as StateManagerProps } from 'react-select/src/stateManager';
 import { Props as SelectProps } from 'react-select/src/Select';

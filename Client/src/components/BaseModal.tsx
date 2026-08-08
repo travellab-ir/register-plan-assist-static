@@ -1,6 +1,6 @@
 import React, { FC, ReactElement, useState, KeyboardEvent } from 'react';
 import { Theme, DialogTitle, DialogContent, DialogActions, Button, IconButton, CircularProgress, Paper, Typography } from '@material-ui/core';
-import { Close as CloseIcon } from '@material-ui/icons';
+import { X as CloseIcon } from 'lucide-react';
 import { makeStyles } from '@material-ui/styles';
 import DraggableDialog, { DraggableDialogProps } from 'src/components/DraggableDialog';
 import { useIsCompact } from 'src/utils/useResponsive';
