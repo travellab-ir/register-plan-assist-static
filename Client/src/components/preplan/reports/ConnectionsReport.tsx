@@ -21,7 +21,7 @@ import MasterData, { Airport } from 'src/business/master-data';
 import Weekday from '@core/types/Weekday';
 import MultiSelect from 'src/components/MultiSelect';
 import classNames from 'classnames';
-import { CallMade as ConnectionIcon, Publish as ExportToExcelIcon } from '@material-ui/icons';
+import { ArrowUpRight as ConnectionIcon, Upload as ExportToExcelIcon } from 'lucide-react';
 import { ExcelExport, ExcelExportColumn, ExcelExportColumnGroup } from '@progress/kendo-react-excel-export';
 import { CellOptions } from '@progress/kendo-react-excel-export/dist/npm/ooxml/CellOptionsInterface';
 import { dataTypes } from 'src/utils/DataType';

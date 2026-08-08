@@ -23,7 +23,7 @@ import { red, grey } from '@material-ui/core/colors';
 import { makeStyles } from '@material-ui/styles';
 import MasterData, { Airport } from 'src/business/master-data';
 import Daytime from '@core/types/Daytime';
-import { Publish as ExportToExcelIcon, Update as DstIcon } from '@material-ui/icons';
+import { Upload as ExportToExcelIcon, RefreshCw as DstIcon } from 'lucide-react';
 import { ExcelExport, ExcelExportColumn, ExcelExportColumnGroup } from '@progress/kendo-react-excel-export';
 import { CellOptions } from '@progress/kendo-react-excel-export/dist/npm/ooxml/CellOptionsInterface';
 import classNames from 'classnames';
