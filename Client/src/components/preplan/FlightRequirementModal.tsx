@@ -21,6 +21,7 @@ import FlightRequirementService from 'src/services/FlightRequirementService';
 import DayFlightRequirementLegModel from '@core/models/flight-requirement/DayFlightRequirementLegModel';
 import { dataTypes } from 'src/utils/DataType';
 import RefiningTextField from 'src/components/RefiningTextField';
+import { useIsCompact } from 'src/utils/useResponsive';
 import {
   ViewState,
   RouteLegViewState,
@@ -296,6 +297,23 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginTop: theme.spacing(2),
     display: 'inline-flex',
     alignItems: 'center'
+  },
+  // Below "sm" the vertical day-tab column (7 tiny 8%-wide tabs plus a
+  // separate checkbox column next to it) is unusable, so the two merge
+  // into a single horizontal scrollable strip: each tab carries its own
+  // selection checkbox instead of relying on a column beside it.
+  mobileDayTabLabel: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    fontSize: '11px',
+    lineHeight: '13px'
+  },
+  mobileDayTabCheckbox: {
+    padding: 2
+  },
+  mobileSelectAllDays: {
+    marginLeft: theme.spacing(1)
   }
 }));
 
@@ -329,6 +347,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
   const errors = makeValidationErrors();
 
   const classes = useStyles();
+  const isCompact = useIsCompact();
 
   return (
     <BaseModal
@@ -369,15 +388,17 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                 <Paper classes={{ root: classes.panelPaper }}>
                   <Grid container spacing={2}>
                     <Grid item xs={12} container spacing={0}>
-                      <Grid item xs={1}>
-                        {daySelection()}
-                      </Grid>
-                      <Grid item xs={1}>
+                      {!isCompact && (
+                        <Grid item xs={1}>
+                          {daySelection()}
+                        </Grid>
+                      )}
+                      <Grid item xs={12} sm={1}>
                         {dayTabs()}
                       </Grid>
 
                       {/* Day contents */}
-                      <Grid item xs={10}>
+                      <Grid item xs={12} sm={10}>
                         <Paper classes={{ root: classNames(classes.panelPaper, classes.dayPanelPaper) }}>
                           <Grid container spacing={2}>
                             {dayGeneralFields()}
@@ -421,7 +442,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
         function generalFields() {
           return (
             <Fragment>
-              <Grid item xs={5}>
+              <Grid item xs={12} sm={5}>
                 <RefiningTextField
                   fullWidth
                   autoFocus
@@ -435,7 +456,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   disabled={preplan.readonly}
                 />
               </Grid>
-              <Grid item xs={5}>
+              <Grid item xs={12} sm={5}>
                 {viewState.addingNewCategory ? (
                   <RefiningTextField
                     fullWidth
@@ -466,7 +487,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   />
                 )}
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={6} sm={1}>
                 {viewState.addingNewCategory ? (
                   <IconButton
                     disabled={preplan.readonly}
@@ -485,7 +506,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   </IconButton>
                 )}
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={6} sm={1}>
                 <AutoComplete
                   options={MasterData.all.stcs.items}
                   label="Stc"
@@ -731,38 +752,102 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
           );
         }
 
+        function dayTabLabelText(d: Weekday): string {
+          return `${
+            scopeViewState &&
+            (scopeViewState.weekDays[d].rsx !== scopeViewState.baseDay.rsx ||
+              dataTypes.label.refineView(scopeViewState.weekDays[d].notes) !== dataTypes.label.refineView(scopeViewState.baseDay.notes) ||
+              scopeViewState.weekDays[d].allowedAircraftIdentities.some(i => !scopeViewState.baseDay.allowedAircraftIdentities.includes(i)) ||
+              scopeViewState.baseDay.allowedAircraftIdentities.some(i => !scopeViewState.weekDays[d].allowedAircraftIdentities.includes(i)) ||
+              scopeViewState.weekDays[d].forbiddenAircraftIdentities.some(i => !scopeViewState.baseDay.forbiddenAircraftIdentities.includes(i)) ||
+              scopeViewState.baseDay.forbiddenAircraftIdentities.some(i => !scopeViewState.weekDays[d].forbiddenAircraftIdentities.includes(i)) ||
+              scopeViewState.weekDays[d].legs.some(
+                (l, index) =>
+                  dataTypes.daytime.refineView(l.stdLowerBound) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].stdLowerBound) ||
+                  dataTypes.daytime.refineView(l.stdUpperBound) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].stdUpperBound) ||
+                  dataTypes.daytime.refineView(l.blockTime) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].blockTime) ||
+                  l.originPermission !== scopeViewState.baseDay.legs[index].originPermission ||
+                  l.destinationPermission !== scopeViewState.baseDay.legs[index].destinationPermission
+              ))
+              ? '✱'
+              : ''
+          } (${d + 1}) ${Weekday[d].slice(0, 3)}`;
+        }
+
         function dayTabs() {
-          return (
-            <Tabs value={dayIndex} onChange={(e, dayIndex) => setViewState({ ...viewState, dayIndex })} variant="fullWidth" orientation="vertical">
+          // On a phone the vertical strip of 8 tiny tabs plus a separate
+          // checkbox column beside it (daySelection) doesn't fit, so the
+          // two merge: horizontal scrollable tabs, each carrying its own
+          // day-selection checkbox in the label.
+          const tabs = (
+            <Tabs
+              value={dayIndex}
+              onChange={(e, dayIndex) => setViewState({ ...viewState, dayIndex })}
+              variant={isCompact ? 'scrollable' : 'fullWidth'}
+              scrollButtons={isCompact ? 'auto' : undefined}
+              orientation={isCompact ? 'horizontal' : 'vertical'}
+            >
               <Tab classes={{ root: classNames(classes.dayTab, { [classes.error]: errors.allDays }) }} value="ALL" label="(All)" disabled={!scopeViewState} />
               {Weekdays.map(d => (
                 <Tab
                   key={d}
                   classes={{ root: classNames(classes.dayTab, { [classes.error]: errors.dayTabs[d] }) }}
                   value={d}
-                  label={`${
-                    scopeViewState &&
-                    (scopeViewState.weekDays[d].rsx !== scopeViewState.baseDay.rsx ||
-                      dataTypes.label.refineView(scopeViewState.weekDays[d].notes) !== dataTypes.label.refineView(scopeViewState.baseDay.notes) ||
-                      scopeViewState.weekDays[d].allowedAircraftIdentities.some(i => !scopeViewState.baseDay.allowedAircraftIdentities.includes(i)) ||
-                      scopeViewState.baseDay.allowedAircraftIdentities.some(i => !scopeViewState.weekDays[d].allowedAircraftIdentities.includes(i)) ||
-                      scopeViewState.weekDays[d].forbiddenAircraftIdentities.some(i => !scopeViewState.baseDay.forbiddenAircraftIdentities.includes(i)) ||
-                      scopeViewState.baseDay.forbiddenAircraftIdentities.some(i => !scopeViewState.weekDays[d].forbiddenAircraftIdentities.includes(i)) ||
-                      scopeViewState.weekDays[d].legs.some(
-                        (l, index) =>
-                          dataTypes.daytime.refineView(l.stdLowerBound) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].stdLowerBound) ||
-                          dataTypes.daytime.refineView(l.stdUpperBound) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].stdUpperBound) ||
-                          dataTypes.daytime.refineView(l.blockTime) !== dataTypes.daytime.refineView(scopeViewState.baseDay.legs[index].blockTime) ||
-                          l.originPermission !== scopeViewState.baseDay.legs[index].originPermission ||
-                          l.destinationPermission !== scopeViewState.baseDay.legs[index].destinationPermission
-                      ))
-                      ? '✱'
-                      : ''
-                  } (${d + 1}) ${Weekday[d].slice(0, 3)}`}
+                  label={
+                    isCompact ? (
+                      <div className={classes.mobileDayTabLabel}>
+                        <Checkbox
+                          size="small"
+                          classes={{ root: classes.mobileDayTabCheckbox }}
+                          checked={scopeViewState?.weekDays[d].selected ?? false}
+                          onClick={e => e.stopPropagation()}
+                          onChange={(e, selected) =>
+                            scopeViewState &&
+                            updateScope(scope => ({
+                              ...scope,
+                              weekDays: splice(scope.weekDays, d, 1, { ...scope.baseDay, selected })
+                            }))
+                          }
+                          disabled={preplan.readonly}
+                        />
+                        {dayTabLabelText(d)}
+                      </div>
+                    ) : (
+                      dayTabLabelText(d)
+                    )
+                  }
                   disabled={!scopeViewState}
                 />
               ))}
             </Tabs>
+          );
+
+          if (!isCompact) return tabs;
+
+          return (
+            <Fragment>
+              <FormControlLabel
+                className={classes.mobileSelectAllDays}
+                control={
+                  <Checkbox
+                    indeterminate={scopeViewState && scopeViewState.weekDays.some(d => d.selected) && !scopeViewState.weekDays.every(d => d.selected)}
+                    checked={scopeViewState?.weekDays.every(d => d.selected) ?? false}
+                    onChange={e => {
+                      if (!scopeViewState) return;
+                      const selected = !scopeViewState.weekDays.every(d => d.selected);
+                      updateScope(scope => ({
+                        ...scope,
+                        weekDays: scope.weekDays.map(() => ({ ...scope.baseDay, selected }))
+                      }));
+                    }}
+                    color="primary"
+                    disabled={preplan.readonly || !scopeViewState}
+                  />
+                }
+                label="Select all days"
+              />
+              {tabs}
+            </Fragment>
           );
         }
         function dayGeneralFields() {
@@ -770,7 +855,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
 
           return (
             <Fragment>
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={2}>
                 <AutoComplete
                   label="RSX"
                   options={rsxOptions}
@@ -781,7 +866,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   isDisabled={disabled}
                 />
               </Grid>
-              <Grid item xs={10}>
+              <Grid item xs={12} sm={10}>
                 <RefiningTextField
                   fullWidth
                   label="Notes"
@@ -794,7 +879,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.notes}
                 />
               </Grid>
-              <Grid item xs={5}>
+              <Grid item xs={12} sm={5}>
                 <MultiSelect
                   label="Allowed Aircrafts"
                   options={aircraftIdentityOptions}
@@ -809,7 +894,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.allowedAircrafts}
                 ></MultiSelect>
               </Grid>
-              <Grid item xs={5}>
+              <Grid item xs={12} sm={5}>
                 <MultiSelect
                   label="Forbidden Aircrafts"
                   options={aircraftIdentityOptions}
@@ -822,7 +907,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   isDisabled={disabled}
                 ></MultiSelect>
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={2}>
                 <RefiningTextField
                   fullWidth
                   label="Register"
@@ -983,7 +1068,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
 
           return (
             <Fragment>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <RefiningTextField
                   fullWidth
                   label="Flight Number"
@@ -996,7 +1081,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.flightNumber}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={6} sm={4}>
                 <RefiningTextField
                   fullWidth
                   label="Departure Airport"
@@ -1009,7 +1094,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.departureAirport}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={6} sm={4}>
                 <RefiningTextField
                   fullWidth
                   label="Arrival Airport"
@@ -1022,7 +1107,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.arrivalAirport}
                 />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={12} sm={4}>
                 <RefiningTextField
                   fullWidth
                   label="Block Time"
@@ -1040,7 +1125,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   helperText={errors.blockTime}
                 />
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <div className={classes.flex}>
                   <RefiningTextField
                     fullWidth
@@ -1060,10 +1145,10 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   )}
                 </div>
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <TextField label="STA" value={calculateSta(legViewState?.stdLowerBound, legViewState?.blockTime)} disabled={true} />
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <div className={classes.flex}>
                   <RefiningTextField
                     fullWidth
@@ -1083,10 +1168,10 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   )}
                 </div>
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <TextField label="STA" value={calculateSta(legViewState?.stdUpperBound, legViewState?.blockTime)} disabled={true} />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <FormControlLabel
                   label="Departure perms."
                   control={
@@ -1100,7 +1185,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                 />
               </Grid>
 
-              <Grid item xs={9}>
+              <Grid item xs={12} sm={9}>
                 <RefiningTextField
                   fullWidth
                   multiline
@@ -1112,7 +1197,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   disabled={legDisabled}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <FormControlLabel
                   label="Arrival perms."
                   control={
@@ -1125,7 +1210,7 @@ const FlightRequirementModal = createModal<FlightRequirementModalState, FlightRe
                   disabled={legDisabled}
                 />
               </Grid>
-              <Grid item xs={9}>
+              <Grid item xs={12} sm={9}>
                 <RefiningTextField
                   fullWidth
                   multiline
