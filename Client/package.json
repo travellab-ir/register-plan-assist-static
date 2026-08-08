@@ -12,7 +12,7 @@
   "dependencies": {
     "@ahs502/validation": "github:ahs502/validation",
     "@material-ui/core": "^4.7.0",
-    "@material-ui/icons": "^4.5.1",
+    "lucide-react": "^0.469.0",
     "@material-ui/styles": "^4.6.0",
     "@progress/kendo-react-excel-export": "^3.9.0",
     "chroma-js": "^2.1.0",
