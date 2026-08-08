@@ -1,18 +1,25 @@
 import React, { FC, useRef, useState } from 'react';
-import { Theme, AppBar as MaterialUiAppBar, Toolbar, IconButton, Typography, Menu, MenuItem, ButtonBase, Box } from '@material-ui/core';
+import { Theme, AppBar as MaterialUiAppBar, Toolbar, IconButton, Typography, Menu, MenuItem, ListItemIcon, ButtonBase, Box } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import {
   ChevronLeft as ArrowBackIcon,
   RefreshCw as SyncIcon,
-  MonitorPlay as ViewModuleIcon,
+  LayoutGrid as ViewModuleIcon,
   Maximize as FullScreenIcon,
   Minimize as ExitFullScreenIcon,
-  MoreVertical as MoreVertIcon
+  MoreVertical as MoreVertIcon,
+  LogOut as LogoutIcon
 } from 'lucide-react';
 import classNames from 'classnames';
 import persistant from 'src/utils/persistant';
 import config from 'src/config';
 import { useIsCompact } from 'src/utils/useResponsive';
+
+// Header palette lives here rather than in the shared theme: it's a
+// one-off, deliberately bolder treatment for the app's masthead, not a
+// color other components should inherit.
+const headerAccent = '#22D3EE'; // bright cyan — status, focus rings, the signature underline
+const headerAccentDim = 'rgba(34, 211, 238, 0.45)';
 
 const useStyles = makeStyles((theme: Theme) => ({
   textMargin: {
@@ -40,7 +47,39 @@ const useStyles = makeStyles((theme: Theme) => ({
     left: 5
   },
   appBarStyle: {
-    height: theme.spacing(6)
+    position: 'relative',
+    height: theme.spacing(6),
+    // A deep indigo-to-violet gradient reads as a control-room instrument
+    // panel rather than a flat, generic toolbar — modern without being loud.
+    backgroundImage: 'linear-gradient(115deg, #1E1B4B 0%, #4338CA 55%, #6D28D9 100%)',
+    boxShadow: '0 2px 18px rgba(30, 27, 75, 0.35)',
+    overflow: 'hidden'
+  },
+  // Thin glowing rule along the bottom edge — the header's one signature
+  // flourish. It brightens while data is loading, giving the whole bar a
+  // second, ambient "system is working" signal beyond the spin icon alone.
+  statusRule: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 2,
+    backgroundImage: `linear-gradient(90deg, transparent, ${headerAccent}, transparent)`,
+    backgroundSize: '50% 100%',
+    backgroundRepeat: 'no-repeat',
+    opacity: 0.35,
+    transition: 'opacity 200ms ease'
+  },
+  statusRuleActive: {
+    opacity: 1,
+    animation: '$sweep 1.4s ease-in-out infinite',
+    '@media (prefers-reduced-motion: reduce)': {
+      animation: 'none'
+    }
+  },
+  '@keyframes sweep': {
+    '0%': { backgroundPosition: '-120% 0' },
+    '100%': { backgroundPosition: '220% 0' }
   },
   toolbarStyle: {
     // Prevents the bar from ever forcing horizontal scroll on narrow phones.
@@ -51,6 +90,37 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingRight: theme.spacing(0.5)
     }
   },
+  iconButton: {
+    borderRadius: theme.spacing(1),
+    transition: 'background-color 150ms ease, transform 150ms ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.14)'
+    },
+    // Explicit, high-contrast focus ring: against a gradient, the browser's
+    // default outline can disappear — this keeps keyboard navigation visible
+    // and unambiguous everywhere on the bar.
+    '&:focus-visible': {
+      outline: `2px solid ${headerAccent}`,
+      outlineOffset: 2,
+      backgroundColor: 'rgba(255, 255, 255, 0.14)'
+    }
+  },
+  brand: {
+    display: 'inline-flex',
+    alignItems: 'center'
+  },
+  brandDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    backgroundColor: headerAccent,
+    marginInlineStart: theme.spacing(0.75),
+    boxShadow: `0 0 8px ${headerAccentDim}`
+  },
+  brandText: {
+    fontWeight: 700,
+    letterSpacing: '0.06em'
+  },
   userNameCompact: {
     maxWidth: 90,
     overflow: 'hidden',
@@ -58,6 +128,22 @@ const useStyles = makeStyles((theme: Theme) => ({
     whiteSpace: 'nowrap',
     display: 'inline-block',
     verticalAlign: 'middle'
+  },
+  userTrigger: {
+    borderRadius: theme.spacing(1),
+    padding: theme.spacing(0.25, 1),
+    transition: 'background-color 150ms ease',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)'
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${headerAccent}`,
+      outlineOffset: 2
+    }
+  },
+  menuIcon: {
+    color: theme.palette.text.secondary,
+    minWidth: 32
   }
 }));
 
@@ -81,26 +167,41 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
 
   return (
     <Box display="block" displayPrint="none">
-      <MaterialUiAppBar position="relative" className={classes.appBarStyle}>
+      <MaterialUiAppBar position="relative" className={classes.appBarStyle} elevation={0}>
         <Toolbar variant="dense" className={classes.toolbarStyle}>
           <IconButton
+            className={classes.iconButton}
             size={isCompact ? 'small' : 'medium'}
             onClick={() => (window.location.href = 'http://apps.mahan.aero/')}
             color="inherit"
             title="Back To Other Module"
+            aria-label="Back to other module"
           >
             <ArrowBackIcon className={classes.backIcon} />
           </IconButton>
-          <IconButton size={isCompact ? 'small' : 'medium'} color="inherit" onClick={() => window.location.reload()} title={loading ? 'Loading...' : 'Refresh Page'}>
+          <IconButton
+            className={classes.iconButton}
+            size={isCompact ? 'small' : 'medium'}
+            color="inherit"
+            onClick={() => window.location.reload()}
+            title={loading ? 'Loading...' : 'Refresh Page'}
+            aria-label={loading ? 'Loading' : 'Refresh page'}
+          >
             <SyncIcon className={classNames({ 'animate-spin-reverse': loading })} />
           </IconButton>
 
-          <Typography classes={{ root: classNames(classes.textMargin, classes.notSelectable) }} variant="h5" color="inherit" title={config.version}>
-            RPA
+          <Typography classes={{ root: classNames(classes.textMargin, classes.notSelectable, classes.brand) }} variant="h5" color="inherit" title={config.version}>
+            <span className={classes.brandText}>RPA</span>
+            <span className={classes.brandDot} aria-hidden="true" />
           </Typography>
 
           {!!persistant.user && (
-            <ButtonBase>
+            <ButtonBase
+              className={classes.userTrigger}
+              aria-haspopup="menu"
+              aria-expanded={!!userDisplayNameMenuModel.open}
+              aria-controls="user-display-name-menu"
+            >
               <Typography
                 classes={{ root: classNames(classes.textMargin, { [classes.userNameCompact]: isCompact }) }}
                 variant="h6"
@@ -129,6 +230,9 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
                 window.location.reload(); //TODO: Call logout API instead.
               }}
             >
+              <ListItemIcon className={classes.menuIcon}>
+                <LogoutIcon size={18} />
+              </ListItemIcon>
               Logout
             </MenuItem>
           </Menu>
@@ -137,33 +241,59 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
 
           {isCompact ? (
             <>
-              <IconButton size="small" color="inherit" title="More" onClick={event => setOverflowMenuAnchor(event.currentTarget)}>
+              <IconButton
+                className={classes.iconButton}
+                size="small"
+                color="inherit"
+                title="More"
+                aria-label="More options"
+                aria-haspopup="menu"
+                aria-expanded={!!overflowMenuAnchor}
+                aria-controls="app-overflow-menu"
+                onClick={event => setOverflowMenuAnchor(event.currentTarget)}
+              >
                 <MoreVertIcon />
               </IconButton>
-              <Menu anchorEl={overflowMenuAnchor} open={!!overflowMenuAnchor} onClose={() => setOverflowMenuAnchor(null)}>
-                <MenuItem onClick={() => setOverflowMenuAnchor(null)}>Select Module</MenuItem>
+              <Menu id="app-overflow-menu" anchorEl={overflowMenuAnchor} open={!!overflowMenuAnchor} onClose={() => setOverflowMenuAnchor(null)}>
+                <MenuItem onClick={() => setOverflowMenuAnchor(null)}>
+                  <ListItemIcon className={classes.menuIcon}>
+                    <ViewModuleIcon size={18} />
+                  </ListItemIcon>
+                  Select Module
+                </MenuItem>
                 <MenuItem
                   onClick={() => {
                     setOverflowMenuAnchor(null);
                     toggleFullScreen();
                   }}
                 >
+                  <ListItemIcon className={classes.menuIcon}>
+                    {fullScreen ? <ExitFullScreenIcon size={18} /> : <FullScreenIcon size={18} />}
+                  </ListItemIcon>
                   {fullScreen ? 'Exit Full Screen' : 'Full Screen'}
                 </MenuItem>
               </Menu>
             </>
           ) : (
             <>
-              <IconButton color="inherit" title="Select Module">
+              <IconButton className={classes.iconButton} color="inherit" title="Select Module" aria-label="Select module">
                 <ViewModuleIcon />
               </IconButton>
-              <IconButton color="inherit" title={fullScreen ? 'Exit Full Screen' : 'Full Screen'} onClick={() => toggleFullScreen()}>
+              <IconButton
+                className={classes.iconButton}
+                color="inherit"
+                title={fullScreen ? 'Exit Full Screen' : 'Full Screen'}
+                aria-label={fullScreen ? 'Exit full screen' : 'Enter full screen'}
+                onClick={() => toggleFullScreen()}
+              >
                 {fullScreen ? <ExitFullScreenIcon /> : <FullScreenIcon />}
               </IconButton>
             </>
           )}
 
           <i className={classNames('rpa-icon-mahan-air-logo', classes.iconSize)} title="Mahan Air" />
+
+          <span className={classNames(classes.statusRule, { [classes.statusRuleActive]: loading })} aria-hidden="true" />
         </Toolbar>
       </MaterialUiAppBar>
     </Box>
