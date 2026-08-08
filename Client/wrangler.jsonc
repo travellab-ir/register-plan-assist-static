@@ -1,0 +1,8 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "register-plan-assist-static",
+  "compatibility_date": "2026-08-08",
+  "assets": {
+    "directory": "./build"
+  }
+}
