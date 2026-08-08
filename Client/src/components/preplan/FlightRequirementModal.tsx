@@ -1,6 +1,6 @@
 import React, { useMemo, useContext, Fragment, useState, useEffect } from 'react';
 import { Theme, Typography, Grid, Paper, Tabs, Tab, Checkbox, IconButton, FormControlLabel, Slider, TextField } from '@material-ui/core';
-import { Clear as ClearIcon, Add as AddIcon, Remove as RemoveIcon, WrapText as WrapTextIcon } from '@material-ui/icons';
+import { X as ClearIcon, Plus as AddIcon, Minus as RemoveIcon, WrapText as WrapTextIcon } from 'lucide-react';
 import { makeStyles } from '@material-ui/styles';
 import BaseModal, { BaseModalProps, useModalState, createModal } from 'src/components/BaseModal';
 import FlightRequirement from 'src/business/flight-requirement/FlightRequirement';
