@@ -23,6 +23,26 @@
  */
 
 // ---------------------------------------------------------------------------
+// 0) Seed window.config — normally set by a <script src="/api/config/init">
+//    tag from the real server. On static hosting that request 404s, leaving
+//    window.config undefined, which crashes the app during render (blank
+//    page, e.g. AppBar reads config.version) since there's no error boundary.
+// ---------------------------------------------------------------------------
+
+(window as any).config = {
+  env: 'production',
+  version: 'mock',
+  oauth: {
+    serverUrl: '',
+    serverIssuer: '',
+    clientUrl: '',
+    clientId: '',
+    resourceName: '',
+    lang: 'en'
+  }
+};
+
+// ---------------------------------------------------------------------------
 // 1) Seed a fake logged-in session in localStorage (bypasses OAuth redirect)
 // ---------------------------------------------------------------------------
 
