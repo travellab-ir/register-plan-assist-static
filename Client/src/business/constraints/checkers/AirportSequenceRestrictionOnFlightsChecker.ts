@@ -1,6 +1,6 @@
 import Checker from 'src/business/constraints/Checker';
 import Preplan from 'src/business/preplan/Preplan';
-import ConstraintSystem from 'src/business/constraints/ConstraintSystem';
+import ConstraintSystem, { SuperFlightLeg } from 'src/business/constraints/ConstraintSystem';
 import { ConstraintTemplate } from 'src/business/master-data';
 
 export default class AirportSequenceRestrictionOnFlightsChecker extends Checker {
@@ -9,36 +9,33 @@ export default class AirportSequenceRestrictionOnFlightsChecker extends Checker 
   }
 
   check(): void {
-    // return Object.keys(this.constraintSystem.flightEventsByRegister).flatMap(
-    //   registerId =>
-    //     this.constraintSystem.flightEventsByRegister[registerId].reduce<{ superFlights: SuperFlightLeg[]; lastSuperFlight?: SuperFlightLeg; objections: Objection[] }>(
-    //       (result, e) => {
-    //         if (e.starting) {
-    //           if (result.lastSuperFlight) {
-    //             !(e.superFlightLeg.nextRound && result.lastSuperFlight.nextRound) &&
-    //               result.lastSuperFlight.flightLeg.arrivalAirport !== e.superFlightLeg.flightLeg.departureAirport &&
-    //               result.objections.push(
-    //                 e.superFlightLeg.flightLeg.issueObjection(
-    //                   'ERROR',
-    //                   12345,
-    //                   this,
-    //                   constraintMarker =>
-    //                     `${constraintMarker}: ${e.superFlightLeg.flightLeg.marker} departure does not match the arraival of ${result.lastSuperFlight!.flightLeg.label}, ${
-    //                       result.lastSuperFlight!.flightLeg.departureAirport.name
-    //                     }-${result.lastSuperFlight!.flightLeg.arrivalAirport.name}.`
-    //                 )
-    //               );
-    //             delete result.lastSuperFlight;
-    //           }
-    //           result.superFlights.push(e.superFlightLeg);
-    //         } else {
-    //           result.superFlights.remove(e.superFlightLeg);
-    //           result.superFlights.length > 0 || (result.lastSuperFlight = e.superFlightLeg);
-    //         }
-    //         return result;
-    //       },
-    //       { superFlights: [], objections: [] }
-    //     ).objections
-    // );
+    Object.keys(this.constraintSystem.flightLegEventsByAircraftRegisterId).forEach(aircraftRegisterId => {
+      const openSuperFlightLegs: SuperFlightLeg[] = [];
+      let lastSuperFlightLeg: SuperFlightLeg | undefined;
+      this.constraintSystem.flightLegEventsByAircraftRegisterId[aircraftRegisterId].forEach(e => {
+        if (e.starting) {
+          if (lastSuperFlightLeg) {
+            // Both copies are the shifted (second) round of the same underlying pair, so the
+            // gap was already checked once when the first-round copies met.
+            if (!(e.superFlightLeg.secondRound && lastSuperFlightLeg.secondRound) && lastSuperFlightLeg.flightLeg.arrivalAirport !== e.superFlightLeg.flightLeg.departureAirport) {
+              this.issueObjection(
+                e.superFlightLeg.flightLeg,
+                'ERROR',
+                12345,
+                constraintMarker =>
+                  `${constraintMarker}: ${e.superFlightLeg.flightLeg.marker} departure does not match the arrival of ${lastSuperFlightLeg!.flightLeg.label}, ${
+                    lastSuperFlightLeg!.flightLeg.departureAirport.name
+                  }-${lastSuperFlightLeg!.flightLeg.arrivalAirport.name}.`
+              );
+            }
+            lastSuperFlightLeg = undefined;
+          }
+          openSuperFlightLegs.push(e.superFlightLeg);
+        } else {
+          openSuperFlightLegs.remove(e.superFlightLeg);
+          if (openSuperFlightLegs.length === 0) lastSuperFlightLeg = e.superFlightLeg;
+        }
+      });
+    });
   }
 }
