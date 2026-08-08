@@ -1,0 +1,95 @@
+name: Unzip and clean project structure
+
+# This workflow:
+#   1) Looks for a .zip file at the root of the repo (e.g. register-plan-assist-static.zip)
+#   2) Extracts it
+#   3) Flattens the extra wrapper folder (moves Client/ and Core/ up to repo root)
+#   4) Deletes the zip file and any unnecessary folders (node_modules, build, dist, __MACOSX, etc.)
+#   5) Commits the cleaned-up structure back to the repo
+#
+# HOW TO USE:
+#   - Put this file at: .github/workflows/unzip-and-clean.yml
+#   - Push your .zip file to the repo root (e.g. via GitHub web "Upload files")
+#   - Run this workflow manually from the "Actions" tab (workflow_dispatch),
+#     or it will also run automatically whenever you push a .zip file to main.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '**.zip'
+
+jobs:
+  unzip-and-clean:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract every zip found at repo root
+        run: |
+          set -e
+          shopt -s nullglob
+          zips=(*.zip)
+
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "No .zip file found at repo root. Nothing to do."
+            exit 0
+          fi
+
+          for zipfile in "${zips[@]}"; do
+            echo "Extracting: $zipfile"
+            tmpdir=$(mktemp -d)
+            unzip -q "$zipfile" -d "$tmpdir"
+
+            # If the zip contains a single wrapping folder, flatten it
+            # (i.e. move its contents up one level).
+            entries=("$tmpdir"/*)
+            if [ ${#entries[@]} -eq 1 ] && [ -d "${entries[0]}" ]; then
+              echo "Flattening wrapper folder: $(basename "${entries[0]}")"
+              shopt -s dotglob
+              mv "${entries[0]}"/* .
+              shopt -u dotglob
+            else
+              mv "$tmpdir"/* .
+            fi
+
+            rm -rf "$tmpdir"
+            rm -f "$zipfile"
+          done
+
+      - name: Remove unnecessary / junk folders and files
+        run: |
+          set -e
+          echo "Cleaning up unnecessary folders..."
+
+          # Common junk from zip extraction and accidental node builds
+          find . -maxdepth 4 -type d \( \
+              -name "node_modules" -o \
+              -name "__MACOSX" -o \
+              -name "build" -o \
+              -name "dist" -o \
+              -name ".DS_Store" \
+            \) -prune -exec rm -rf {} + 2>/dev/null || true
+
+          find . -name ".DS_Store" -type f -delete
+
+          echo "Remaining top-level structure:"
+          ls -la
+
+      - name: Commit and push the cleaned structure
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing changed, skipping commit."
+          else
+            git commit -m "chore: unzip and clean up project structure"
+            git push
+          fi
