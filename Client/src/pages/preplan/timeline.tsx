@@ -1,7 +1,8 @@
 import React, { FC, Fragment, useState, useContext, useEffect, useMemo } from 'react';
 import { Theme, IconButton, Badge, Drawer, Portal, CircularProgress, Button } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { CheckCheck as FinilizedIcon, Search as SearchIcon, Settings as SettingsIcon } from 'lucide-react';
+import { CheckCheck as FinilizedIcon, Search as SearchIcon, SlidersHorizontal as SettingsIcon } from 'lucide-react';
+import classNames from 'classnames';
 import MahanIcon, { MahanIconType } from 'src/components/MahanIcon';
 import LinkIconButton from 'src/components/LinkIconButton';
 import { NavBarToolsContainerContext, PreplanContext, ReloadPreplanContext } from 'src/pages/preplan';
@@ -72,6 +73,52 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   disable: {
     opacity: 0.5
+  },
+  // The toolbar row (search / warnings / settings, etc.) previously sat as
+  // loose, unstyled IconButtons directly on the breadcrumb bar. Grouping
+  // them into a pill with a hairline border gives the row a clear edge and
+  // makes it read as one coherent control cluster instead of scattered
+  // buttons floating in space.
+  toolsWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1)
+  },
+  toolsGroup: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 2,
+    padding: 3,
+    borderRadius: 999,
+    backgroundColor: theme.palette.common.white,
+    border: `1px solid ${theme.palette.grey[300]}`,
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
+  },
+  toolsDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    margin: theme.spacing(0.75, 0.5),
+    backgroundColor: theme.palette.grey[300]
+  },
+  toolIconButton: {
+    borderRadius: '50%',
+    color: theme.palette.grey[700],
+    transition: 'background-color 150ms ease, color 150ms ease',
+    '&:hover': {
+      backgroundColor: 'rgba(89, 107, 236, 0.1)',
+      color: theme.palette.primary.main
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${theme.palette.primary.main}`,
+      outlineOffset: 2
+    }
+  },
+  toolIconButtonAlert: {
+    color: theme.palette.warning.dark,
+    '&:hover': {
+      backgroundColor: 'rgba(237, 108, 2, 0.1)',
+      color: theme.palette.warning.dark
+    }
   }
 }));
 
@@ -183,46 +230,69 @@ const TimelinePage: FC<TimelinePageProps> = ({ onObjectionTargetClick, onEditFli
       {timelineViewState.loading && <CircularProgress size={48} className={classes.progress} />}
 
       <Portal container={navBarToolsContainer}>
-        <div className={timelineViewState.loading ? classes.disable : ''}>
+        <div className={classNames(classes.toolsWrapper, { [classes.disable]: timelineViewState.loading })}>
           <Button onClick={() => openPreplanVersionsModal({ preplan: preplan } as PerplanVersionsModalState)}>{navBarStatus.preplanVersionDescription}</Button>
-          <IconButton disabled={timelineViewState.loading} color="inherit" title="Accept Preplan">
-            <FinilizedIcon />
-          </IconButton>
-          <LinkIconButton disabled={timelineViewState.loading} color="inherit" to={`/preplan/${preplan.id}/flight-requirement-list`} title="Flight Requirement">
-            <MahanIcon type={MahanIconType.FlightIcon} />
-          </LinkIconButton>
-          <LinkIconButton disabled={timelineViewState.loading} color="inherit" title="Reports" to={`/preplan/${preplan.id}/reports`}>
-            <MahanIcon type={MahanIconType.Chart} />
-          </LinkIconButton>
-          <IconButton
-            disabled={timelineViewState.loading}
-            color="inherit"
-            onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SEARCH_FLIGHTS', open: true })}
-            title="Search Flight Legs"
-          >
-            <SearchIcon />
-          </IconButton>
-          <IconButton
-            disabled={timelineViewState.loading}
-            color="inherit"
-            onClick={() => setSideBarState({ ...sideBarState, sideBar: 'OBJECTIONS', open: true })}
-            title="Errors and Warnings"
-          >
-            <Badge badgeContent={preplan.constraintSystem.objections.length} color="secondary" invisible={preplan.constraintSystem.objections.length === 0}>
-              <MahanIcon type={MahanIconType.Alert} fontSize="inherit" />
-            </Badge>
-          </IconButton>
-          <IconButton
-            disabled={timelineViewState.loading}
-            color="inherit"
-            onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SELECT_AIRCRAFT_REGISTERS', open: true })}
-            title="Select Aircraft Register"
-          >
-            <MahanIcon type={MahanIconType.Flights} />
-          </IconButton>
-          <IconButton color="inherit" onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SETTINGS', open: true })} title="Settings">
-            <SettingsIcon />
-          </IconButton>
+
+          <div className={classes.toolsGroup}>
+            <IconButton className={classes.toolIconButton} size="small" disabled={timelineViewState.loading} title="Accept Preplan">
+              <FinilizedIcon size={19} />
+            </IconButton>
+            <LinkIconButton
+              className={classes.toolIconButton}
+              size="small"
+              disabled={timelineViewState.loading}
+              to={`/preplan/${preplan.id}/flight-requirement-list`}
+              title="Flight Requirement"
+            >
+              <MahanIcon type={MahanIconType.FlightIcon} fontSize="small" />
+            </LinkIconButton>
+            <LinkIconButton className={classes.toolIconButton} size="small" disabled={timelineViewState.loading} title="Reports" to={`/preplan/${preplan.id}/reports`}>
+              <MahanIcon type={MahanIconType.Chart} fontSize="small" />
+            </LinkIconButton>
+
+            <span className={classes.toolsDivider} />
+
+            <IconButton
+              className={classes.toolIconButton}
+              size="small"
+              disabled={timelineViewState.loading}
+              onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SEARCH_FLIGHTS', open: true })}
+              title="Search Flight Legs"
+            >
+              <SearchIcon size={19} />
+            </IconButton>
+            <IconButton
+              className={classNames(classes.toolIconButton, { [classes.toolIconButtonAlert]: preplan.constraintSystem.objections.length > 0 })}
+              size="small"
+              disabled={timelineViewState.loading}
+              onClick={() => setSideBarState({ ...sideBarState, sideBar: 'OBJECTIONS', open: true })}
+              title="Errors and Warnings"
+            >
+              <Badge badgeContent={preplan.constraintSystem.objections.length} color="secondary" invisible={preplan.constraintSystem.objections.length === 0}>
+                <MahanIcon type={MahanIconType.Alert} fontSize="small" />
+              </Badge>
+            </IconButton>
+            <IconButton
+              className={classes.toolIconButton}
+              size="small"
+              disabled={timelineViewState.loading}
+              onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SELECT_AIRCRAFT_REGISTERS', open: true })}
+              title="Select Aircraft Register"
+            >
+              <MahanIcon type={MahanIconType.Flights} fontSize="small" />
+            </IconButton>
+
+            <span className={classes.toolsDivider} />
+
+            <IconButton
+              className={classes.toolIconButton}
+              size="small"
+              onClick={() => setSideBarState({ ...sideBarState, sideBar: 'SETTINGS', open: true })}
+              title="Settings"
+            >
+              <SettingsIcon size={19} />
+            </IconButton>
+          </div>
         </div>
       </Portal>
 
