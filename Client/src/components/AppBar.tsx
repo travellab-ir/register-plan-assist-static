@@ -144,6 +144,29 @@ const useStyles = makeStyles((theme: Theme) => ({
   menuIcon: {
     color: theme.palette.text.secondary,
     minWidth: 32
+  },
+  // A floating, rounded card instead of MUI's stock square dropdown — the
+  // soft shadow and hairline border read as a deliberate, modern surface
+  // rather than a default browser-ish menu.
+  menuPaper: {
+    marginTop: theme.spacing(1),
+    minWidth: 208,
+    borderRadius: theme.spacing(1.5),
+    border: `1px solid ${theme.palette.grey[200]}`,
+    boxShadow: '0 16px 40px rgba(30, 27, 75, 0.16), 0 2px 8px rgba(30, 27, 75, 0.08)',
+    overflow: 'hidden',
+    '& .MuiList-root': {
+      padding: theme.spacing(0.75)
+    },
+    '& .MuiMenuItem-root': {
+      borderRadius: theme.spacing(1),
+      padding: theme.spacing(1, 1.25),
+      fontSize: '0.875rem',
+      transition: 'background-color 120ms ease',
+      '&:hover': {
+        backgroundColor: 'rgba(67, 56, 202, 0.08)'
+      }
+    }
   }
 }));
 
@@ -218,6 +241,9 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
             anchorEl={userDisplayNameRef.current}
             open={!!userDisplayNameMenuModel.open}
             onClose={() => setUserDisplayNameMenuModel({ open: false })}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            PaperProps={{ className: classes.menuPaper }}
           >
             <MenuItem
               onClick={() => {
@@ -254,7 +280,15 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
               >
                 <MoreVertIcon />
               </IconButton>
-              <Menu id="app-overflow-menu" anchorEl={overflowMenuAnchor} open={!!overflowMenuAnchor} onClose={() => setOverflowMenuAnchor(null)}>
+              <Menu
+                id="app-overflow-menu"
+                anchorEl={overflowMenuAnchor}
+                open={!!overflowMenuAnchor}
+                onClose={() => setOverflowMenuAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                PaperProps={{ className: classes.menuPaper }}
+              >
                 <MenuItem onClick={() => setOverflowMenuAnchor(null)}>
                   <ListItemIcon className={classes.menuIcon}>
                     <ViewModuleIcon size={18} />
