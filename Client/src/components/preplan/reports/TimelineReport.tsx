@@ -111,6 +111,15 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   afterNoonFlight: {
     paddingLeft: '50%'
+  },
+  // 8 columns (register + 7 weekdays) don't fit a phone width; let it
+  // scroll horizontally on screen while staying untouched for print.
+  tableScrollContainer: {
+    width: '100%',
+    overflowX: 'auto',
+    '@media print': {
+      overflowX: 'visible'
+    }
   }
 }));
 
@@ -270,7 +279,8 @@ const TimelineReport: FC<PreplanReportProps> = () => {
       </Box>
 
       <Box display="block" displayPrint="block">
-        <Table size="small">
+        <div className={classes.tableScrollContainer}>
+          <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell colSpan={2} className={classNames(classes.border, classes.weekDayColumnHeader)}>
@@ -329,6 +339,7 @@ const TimelineReport: FC<PreplanReportProps> = () => {
             ))}
           </TableBody>
         </Table>
+        </div>
       </Box>
     </div>
   );

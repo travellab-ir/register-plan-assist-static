@@ -176,6 +176,16 @@ const useStyles = makeStyles((theme: Theme) => {
     },
     lcoalTimeCell: {
       width: 60
+    },
+    // The report table is wide (19 columns) by design — needed for the
+    // printed report. On screen, below desktop widths, let it scroll
+    // horizontally instead of squeezing; printing is unaffected.
+    tableScrollContainer: {
+      width: '100%',
+      overflowX: 'auto',
+      '@media print': {
+        overflowX: 'visible'
+      }
     }
   };
 });
@@ -875,7 +885,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
         <Grid container spacing={2}>
           <Grid item xs={12}>
             <Grid container spacing={2}>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={1}>
                 <InputLabel htmlFor="flight-type" className={classes.marginBottom1}>
                   Airline
                 </InputLabel>
@@ -892,7 +902,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   isDisabled={renderReport}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <InputLabel htmlFor="base-airport" className={classes.marginBottom1}>
                   Base Airport
                 </InputLabel>
@@ -910,7 +920,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   isDisabled={renderReport}
                 />
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={12} sm={2}>
                 <InputLabel htmlFor="flight-type" className={classes.marginBottom1}>
                   Flight Type
                 </InputLabel>
@@ -931,7 +941,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={5}>
+              <Grid item xs={12} sm={5}>
                 <InputLabel htmlFor="base-airport" className={classes.marginBottom1}>
                   Category
                 </InputLabel>
@@ -951,7 +961,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
               </Grid>
             </Grid>
             <Grid container spacing={2}>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <InputLabel htmlFor="compare-preplan" className={classes.marginBottom1}>
                   Compare with Preplan (optional)
                 </InputLabel>
@@ -965,7 +975,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   isDisabled={renderReport}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <InputLabel htmlFor="compare-preplan" className={classes.marginBottom1}>
                   Version (optional)
                 </InputLabel>
@@ -979,7 +989,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   isDisabled={renderReport}
                 />
               </Grid>
-              <Grid item xs={1} className={classes.datePosition}>
+              <Grid item xs={6} sm={1} className={classes.datePosition}>
                 <RefiningTextField
                   label="Start Date"
                   className={classNames(classes.marginRight1, classes.marginBottom2)}
@@ -991,7 +1001,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   disabled
                 />
               </Grid>
-              <Grid item xs={1} className={classes.datePosition}>
+              <Grid item xs={6} sm={1} className={classes.datePosition}>
                 <RefiningTextField
                   label="End Date"
                   dataType={dataTypes.utcDate}
@@ -1019,10 +1029,10 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
 
           <Grid item xs={12}>
             <Grid container spacing={1}>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={1}>
                 Columns:
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showSlot} onChange={e => setViewState({ ...viewState, showSlot: e.target.checked })} color="primary" />}
@@ -1031,7 +1041,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showNote} onChange={e => setViewState({ ...viewState, showNote: e.target.checked })} color="primary" />}
@@ -1040,7 +1050,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showType} onChange={e => setViewState({ ...viewState, showType: e.target.checked })} color="primary" />}
@@ -1049,7 +1059,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={3}>
+              <Grid item xs={6} sm={3}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showFrequency} onChange={e => setViewState({ ...viewState, showFrequency: e.target.checked })} color="primary" />}
@@ -1062,10 +1072,10 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
 
           <Grid item xs={12}>
             <Grid container spacing={1}>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={1}>
                 Filter:
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showReal} onChange={e => setViewState({ ...viewState, showReal: e.target.checked })} color="primary" />}
@@ -1074,7 +1084,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showSTB1} onChange={e => setViewState({ ...viewState, showSTB1: e.target.checked })} color="primary" />}
@@ -1083,7 +1093,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={2}>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showSTB2} onChange={e => setViewState({ ...viewState, showSTB2: e.target.checked })} color="primary" />}
@@ -1092,7 +1102,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                 />
               </Grid>
 
-              <Grid item xs={5}>
+              <Grid item xs={6} sm={5}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showExtra} onChange={e => setViewState({ ...viewState, showExtra: e.target.checked })} color="primary" />}
@@ -1100,8 +1110,8 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
                   labelPlacement="end"
                 />
               </Grid>
-              <Grid item xs={1}></Grid>
-              <Grid item xs={2}>
+              <Grid item xs={false} sm={1}></Grid>
+              <Grid item xs={6} sm={2}>
                 <FormControlLabel
                   value="start"
                   control={<Checkbox checked={viewState.showDst} onChange={({ target: { checked: showDst } }) => setViewState({ ...viewState, showDst })} color="primary" />}
@@ -1113,10 +1123,10 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
           </Grid>
           <Grid item xs={12}>
             <Grid container spacing={1}>
-              <Grid item xs={1}>
+              <Grid item xs={12} sm={1}>
                 DST:
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6}>
                 <FormControl component="fieldset">
                   <RadioGroup
                     row
@@ -1494,7 +1504,8 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
       </Box>
 
       {validation.ok ? (
-        <Table className={classNames(classes.marginBottom1, classes.marginRight1, { [classes.reportRendering]: renderReport })}>
+        <div className={classes.tableScrollContainer}>
+          <Table className={classNames(classes.marginBottom1, classes.marginRight1, { [classes.reportRendering]: renderReport })}>
           <TableHead>
             <TableRow>
               <TableCell className={classes.border} align="center" colSpan={19}>
@@ -1777,6 +1788,7 @@ const ProposalReport: FC<ProposalReportProps> = ({ preplanName, fromDate, toDate
             ))}
           </TableBody>
         </Table>
+        </div>
       ) : (
         <Paper className={classes.errorPaper}>
           <Typography align="center" className={classes.errorPaperMessage}>

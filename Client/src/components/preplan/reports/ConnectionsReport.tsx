@@ -948,7 +948,7 @@ const ConnectionsReport: FC<ConnectionsReportProps> = ({ preplanName, fromDate, 
           <Grid item xs={12}>
             East Flight
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={12} sm={1}>
             <AutoComplete
               id="airline"
               options={allAirline}
@@ -960,7 +960,7 @@ const ConnectionsReport: FC<ConnectionsReportProps> = ({ preplanName, fromDate, 
               helperText={errors.eastAirline}
             />
           </Grid>
-          <Grid item xs={11}>
+          <Grid item xs={12} sm={11}>
             <MultiSelect
               id="east-airport"
               value={viewState.eastAirports}
@@ -978,7 +978,7 @@ const ConnectionsReport: FC<ConnectionsReportProps> = ({ preplanName, fromDate, 
           <Grid item xs={12}>
             West Flight
           </Grid>
-          <Grid item xs={1}>
+          <Grid item xs={12} sm={1}>
             <AutoComplete
               id="airline"
               options={allAirline}
@@ -990,7 +990,7 @@ const ConnectionsReport: FC<ConnectionsReportProps> = ({ preplanName, fromDate, 
               helperText={errors.westAirline}
             />
           </Grid>
-          <Grid item xs={11}>
+          <Grid item xs={12} sm={11}>
             <MultiSelect
               id="west-airport"
               value={viewState.westAirports}
