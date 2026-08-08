@@ -17,11 +17,39 @@ import FlightRequirementService from 'src/services/FlightRequirementService';
 import FlightLegModel from '@core/models/flight/FlightLegModel';
 import { dataTypes } from 'src/utils/DataType';
 import EditFlightModel from '@core/models/flight/EditFlightModel';
+import { useIsCompact } from 'src/utils/useResponsive';
 
 const useStyles = makeStyles((theme: Theme) => ({
   contentPage: {
     maxWidth: '1176px',
-    margin: 'auto'
+    margin: 'auto',
+    [theme.breakpoints.down('xs')]: {
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1)
+    }
+  },
+  // Tabs + Search + Add button used to be crammed in one row (same fix as
+  // preplan-list.tsx): below "sm" they stack, tab switcher on top, search
+  // + add below.
+  headerControls: {
+    display: 'flex',
+    flexDirection: 'column',
+    [theme.breakpoints.up('sm')]: {
+      flexDirection: 'row',
+      alignItems: 'center'
+    }
+  },
+  headerSearchRow: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1, 1, 1),
+    [theme.breakpoints.up('sm')]: {
+      flexGrow: 1,
+      padding: 0
+    }
+  },
+  headerSearchField: {
+    flexGrow: 1
   },
   flightRequirmentStyle: {
     marginTop: theme.spacing(2)
@@ -99,23 +127,39 @@ const FlightRequirementListPage: FC<FlightRequirementListPageProps> = React.memo
 
   const { enqueueSnackbar } = useSnackbar();
   const classes = useStyles();
+  const isCompact = useIsCompact();
 
   return (
     <div className={classes.contentPage}>
-      <Tabs className={classes.tabsStyle} value={tab} indicatorColor="primary" textColor="primary" onChange={(e, t) => setTab(t)}>
-        <Tab value="ALL" label={`All (${numberOfFlightRequirements})`} />
-        <Tab value="INCLUDED" label={`Included (${numberOfIncludedFlightRequirements})`} />
-        <Tab value="IGNORED" label={`Ignored (${numberOfIgnoredFlightRequirements})`} />
-        <Search outlined onQueryChange={setQuery} />
-        <IconButton color="primary" title="Add Flight" onClick={onAddFlightRequirement} disabled={preplan.readonly}>
-          <AddIcon fontSize="large" />
-        </IconButton>
-      </Tabs>
+      <div className={classes.headerControls}>
+        <Tabs className={classes.tabsStyle} value={tab} indicatorColor="primary" textColor="primary" onChange={(e, t) => setTab(t)}>
+          <Tab value="ALL" label={`All (${numberOfFlightRequirements})`} />
+          <Tab value="INCLUDED" label={`Included (${numberOfIncludedFlightRequirements})`} />
+          <Tab value="IGNORED" label={`Ignored (${numberOfIgnoredFlightRequirements})`} />
+        </Tabs>
+        <div className={classes.headerSearchRow}>
+          <div className={classes.headerSearchField}>
+            <Search outlined onQueryChange={setQuery} />
+          </div>
+          <IconButton color="primary" title="Add Flight" onClick={onAddFlightRequirement} disabled={preplan.readonly}>
+            <AddIcon fontSize="large" />
+          </IconButton>
+        </div>
+      </div>
 
       {filteredFlightRequirments.slice(pageNumber * rowsPerPage, (pageNumber + 1) * rowsPerPage).map(flightRequirement => (
         <Paper key={flightRequirement.id} className={classNames(classes.flightRequirmentStyle, flightRequirement.ignored && classes.paperDisableStyle)}>
           <Grid container direction="row" justify="space-between" alignItems="center" className={classes.flightDefinitionStyle}>
-            <Grid item xs={8} classes={{ root: classNames(flightRequirement.ignored && classes.disableOpacityStyle) }} container direction="row" justify="flex-start" spacing={1}>
+            <Grid
+              item
+              xs={12}
+              sm={8}
+              classes={{ root: classNames(flightRequirement.ignored && classes.disableOpacityStyle) }}
+              container
+              direction="row"
+              justify="flex-start"
+              spacing={1}
+            >
               <Grid item xs={10} classes={{ root: classes.pointer }} onClick={() => onEditFlightRequirement(flightRequirement)}>
                 <Typography display="inline" variant="h6">
                   {flightRequirement.label}
@@ -131,8 +175,8 @@ const FlightRequirementListPage: FC<FlightRequirementListPageProps> = React.memo
                 <TargetObjectionStatus target={flightRequirement}></TargetObjectionStatus>
               </Grid>
             </Grid>
-            <Grid item xs={4} container justify="flex-end" alignItems="center" spacing={1}>
-              <Grid item xs={5}>
+            <Grid item xs={12} sm={4} container justify={isCompact ? 'flex-start' : 'flex-end'} alignItems="center" spacing={1}>
+              <Grid item xs={5} sm={5}>
                 {Array.range(0, 6).map(n => {
                   const dayFlightRequirement = flightRequirement.days.find(d => d.day === n);
                   return (
