@@ -6,16 +6,22 @@ import {
   Sync as SyncIcon,
   PersonalVideo as ViewModuleIcon,
   Fullscreen as FullScreenIcon,
-  FullscreenExit as ExitFullScreenIcon
+  FullscreenExit as ExitFullScreenIcon,
+  MoreVert as MoreVertIcon
 } from '@material-ui/icons';
 import classNames from 'classnames';
 import persistant from 'src/utils/persistant';
 import config from 'src/config';
+import { useIsCompact } from 'src/utils/useResponsive';
 
 const useStyles = makeStyles((theme: Theme) => ({
   textMargin: {
     marginLeft: theme.spacing(1.5),
-    marginRight: theme.spacing(1.5)
+    marginRight: theme.spacing(1.5),
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: theme.spacing(0.75),
+      marginRight: theme.spacing(0.75)
+    }
   },
   notSelectable: {
     userSelect: 'none'
@@ -24,7 +30,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     flexGrow: 1
   },
   iconSize: {
-    fontSize: 40
+    fontSize: 40,
+    [theme.breakpoints.down('xs')]: {
+      fontSize: 28
+    }
   },
   backIcon: {
     position: 'relative',
@@ -32,6 +41,23 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   appBarStyle: {
     height: theme.spacing(6)
+  },
+  toolbarStyle: {
+    // Prevents the bar from ever forcing horizontal scroll on narrow phones.
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
+    [theme.breakpoints.down('xs')]: {
+      paddingLeft: theme.spacing(0.5),
+      paddingRight: theme.spacing(0.5)
+    }
+  },
+  userNameCompact: {
+    maxWidth: 90,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    display: 'inline-block',
+    verticalAlign: 'middle'
   }
 }));
 
@@ -46,19 +72,26 @@ export interface AppBarProps {
 const AppBar: FC<AppBarProps> = ({ loading }) => {
   const [userDisplayNameMenuModel, setUserDisplayNameMenuModel] = useState<UserDisplayNameMenuModel>({});
   const [fullScreen, setFullScreen] = useState(false);
+  const [overflowMenuAnchor, setOverflowMenuAnchor] = useState<HTMLElement | null>(null);
 
   const userDisplayNameRef = useRef(null);
 
   const classes = useStyles();
+  const isCompact = useIsCompact();
 
   return (
     <Box display="block" displayPrint="none">
       <MaterialUiAppBar position="relative" className={classes.appBarStyle}>
-        <Toolbar variant="dense">
-          <IconButton onClick={() => (window.location.href = 'http://apps.mahan.aero/')} color="inherit" title="Back To Other Module">
+        <Toolbar variant="dense" className={classes.toolbarStyle}>
+          <IconButton
+            size={isCompact ? 'small' : 'medium'}
+            onClick={() => (window.location.href = 'http://apps.mahan.aero/')}
+            color="inherit"
+            title="Back To Other Module"
+          >
             <ArrowBackIcon classes={{ root: classes.backIcon }} />
           </IconButton>
-          <IconButton color="inherit" onClick={() => window.location.reload()} title={loading ? 'Loading...' : 'Refresh Page'}>
+          <IconButton size={isCompact ? 'small' : 'medium'} color="inherit" onClick={() => window.location.reload()} title={loading ? 'Loading...' : 'Refresh Page'}>
             <SyncIcon classes={{ root: classNames({ 'animate-spin-reverse': loading }) }} />
           </IconButton>
 
@@ -68,7 +101,13 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
 
           {!!persistant.user && (
             <ButtonBase>
-              <Typography classes={{ root: classes.textMargin }} variant="h6" color="inherit" ref={userDisplayNameRef} onClick={() => setUserDisplayNameMenuModel({ open: true })}>
+              <Typography
+                classes={{ root: classNames(classes.textMargin, { [classes.userNameCompact]: isCompact }) }}
+                variant="h6"
+                color="inherit"
+                ref={userDisplayNameRef}
+                onClick={() => setUserDisplayNameMenuModel({ open: true })}
+              >
                 {persistant.user!.displayName}
               </Typography>
             </ButtonBase>
@@ -96,12 +135,33 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
 
           <div className={classes.grow} />
 
-          <IconButton color="inherit" title="Select Module">
-            <ViewModuleIcon />
-          </IconButton>
-          <IconButton color="inherit" title={fullScreen ? 'Exit Full Screen' : 'Full Screen'} onClick={() => toggleFullScreen()}>
-            {fullScreen ? <ExitFullScreenIcon /> : <FullScreenIcon />}
-          </IconButton>
+          {isCompact ? (
+            <>
+              <IconButton size="small" color="inherit" title="More" onClick={event => setOverflowMenuAnchor(event.currentTarget)}>
+                <MoreVertIcon />
+              </IconButton>
+              <Menu anchorEl={overflowMenuAnchor} open={!!overflowMenuAnchor} onClose={() => setOverflowMenuAnchor(null)}>
+                <MenuItem onClick={() => setOverflowMenuAnchor(null)}>Select Module</MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    setOverflowMenuAnchor(null);
+                    toggleFullScreen();
+                  }}
+                >
+                  {fullScreen ? 'Exit Full Screen' : 'Full Screen'}
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <>
+              <IconButton color="inherit" title="Select Module">
+                <ViewModuleIcon />
+              </IconButton>
+              <IconButton color="inherit" title={fullScreen ? 'Exit Full Screen' : 'Full Screen'} onClick={() => toggleFullScreen()}>
+                {fullScreen ? <ExitFullScreenIcon /> : <FullScreenIcon />}
+              </IconButton>
+            </>
+          )}
 
           <i className={classNames('rpa-icon-mahan-air-logo', classes.iconSize)} title="Mahan Air" />
         </Toolbar>
