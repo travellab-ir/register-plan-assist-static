@@ -5,6 +5,7 @@ export const ConstraintTemplateTypes = <const>[
   'MINIMUM_GROUND_TIME_BETWEEN_FLIGHTS', // [Marraul] Every aircraft should rest for at least its required minimum grount time before any of its flights.
   'VALID_PERIOD_CHECK_ON_AIRCRAFTS', // [Dora] No aircraft may be out of its valid period during the preplan date interval.
   'FLIGHT_REQUIREMENT_RESTRICTION_ON_FLIGHTS', // [Gimaru] Every flight should fit in its corresponding flight requirement.
+  'DISRUPTION_IMPACT_ON_FLIGHTS', // No flight leg may be assigned to an aircraft register during one of its active operational disruptions.
 
   // Instantiable constraint types:
   'AIRCRAFT_RESTRICTION_ON_AIRPORTS', // [Lema & Bizu] When planning the flights of (some airports), it is (allowed/forbidden) to use (some aircrafts).
