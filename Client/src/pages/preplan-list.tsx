@@ -19,7 +19,6 @@ import {
   BarChart3 as ReportsIcon
 } from 'lucide-react';
 import Search, { filterOnProperties } from 'src/components/Search';
-import NavBar from 'src/components/NavBar';
 import persistant from 'src/utils/persistant';
 import { useSnackbar } from 'notistack';
 import ProgressSwitch from 'src/components/ProgressSwitch';
@@ -56,9 +55,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     alignItems: 'center',
     gap: theme.spacing(1.5),
-    paddingTop: theme.spacing(3),
+    paddingTop: theme.spacing(4),
     [theme.breakpoints.down('xs')]: {
-      paddingTop: theme.spacing(2)
+      paddingTop: theme.spacing(3)
     }
   },
   pageHeaderIcon: {
@@ -137,30 +136,65 @@ const useStyles = makeStyles((theme: Theme) => ({
   headerSearchRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing(1),
     [theme.breakpoints.up('sm')]: {
       flexGrow: 1
     }
   },
-  headerSearchField: {
-    flexGrow: 1
+  // Search input and the "add" action used to be two separate floating
+  // shapes (a boxed field + a detached circular button) sitting side by
+  // side — two competing pieces of chrome doing one job. Wrapping both in
+  // a single bordered pill turns them into one control: type to filter,
+  // or hit the button at its trailing edge to create. Only one shape for
+  // the eye to register.
+  searchAddBar: {
+    display: 'flex',
+    alignItems: 'stretch',
+    flexGrow: 1,
+    height: 44,
+    borderRadius: theme.spacing(1.5),
+    border: `1px solid ${theme.palette.grey[300]}`,
+    backgroundColor: theme.palette.common.white,
+    overflow: 'hidden',
+    transition: 'border-color 150ms ease, box-shadow 150ms ease',
+    '&:focus-within': {
+      borderColor: theme.palette.primary.main,
+      boxShadow: `0 0 0 3px rgba(89, 107, 236, 0.15)`
+    }
   },
-  // The bare "+" used to float unattached to anything, reading as an
-  // afterthought. A filled, brand-colored circular button gives the primary
-  // action real visual weight and ties it to the header's own palette.
+  searchAddField: {
+    flexGrow: 1,
+    minWidth: 0,
+    display: 'flex',
+    alignItems: 'center',
+    paddingLeft: theme.spacing(0.5),
+    '& .MuiOutlinedInput-root': {
+      height: 44
+    }
+  },
+  searchAddDivider: {
+    flexShrink: 0,
+    width: 1,
+    alignSelf: 'stretch',
+    margin: theme.spacing(1, 0),
+    backgroundColor: theme.palette.grey[200]
+  },
+  // The primary action lives at the trailing edge of the same pill instead
+  // of floating beside it — brand-colored fill still gives it weight as
+  // the one thing on this row you can act on beyond typing.
   addButton: {
     flexShrink: 0,
-    width: 44,
+    width: 48,
     height: 44,
-    borderRadius: '50%',
+    borderRadius: 0,
     backgroundColor: theme.palette.primary.main,
     color: theme.palette.common.white,
-    boxShadow: '0 4px 12px rgba(89, 107, 236, 0.35)',
-    transition: 'transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease',
+    transition: 'background-color 150ms ease',
     '&:hover': {
-      backgroundColor: theme.palette.primary.dark,
-      boxShadow: '0 6px 16px rgba(89, 107, 236, 0.45)',
-      transform: 'translateY(-1px)'
+      backgroundColor: theme.palette.primary.dark
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${theme.palette.primary.dark}`,
+      outlineOffset: -2
     }
   },
   preplanTableCell: {
@@ -553,15 +587,12 @@ const PreplanListPage: FC = () => {
 
   return (
     <Fragment>
-      <NavBar
-        navBarLinks={[
-          {
-            title: 'Preplans',
-            link: '/preplan-list'
-          }
-        ]}
-      />
-
+      {/* No breadcrumb bar here: this is the top-level page, and the page
+          header directly below already states "Preplans" once, clearly,
+          with an icon and live count. A breadcrumb repeating the same
+          single word right above it added a second bar with nothing new
+          to say — sub-pages (inside a specific preplan) still get the
+          full breadcrumb trail via NavBar, where it actually shows a path. */}
       <div className={classes.contentPage}>
         <div className={classes.pageHeader}>
           <span className={classes.pageHeaderIcon} aria-hidden="true">
@@ -597,12 +628,15 @@ const PreplanListPage: FC = () => {
             />
           </Tabs>
           <div className={classes.headerSearchRow}>
-            <div className={classes.headerSearchField}>
-              <Search onQueryChange={query => setQuery(query)} outlined />
+            <div className={classes.searchAddBar}>
+              <div className={classes.searchAddField}>
+                <Search onQueryChange={query => setQuery(query)} outlined borderless />
+              </div>
+              <span className={classes.searchAddDivider} aria-hidden="true" />
+              <IconButton className={classes.addButton} title="Add Preplan" onClick={() => openNewPreplanHeaderModal({})}>
+                <AddIcon size={20} />
+              </IconButton>
             </div>
-            <IconButton className={classes.addButton} title="Add Preplan" onClick={() => openNewPreplanHeaderModal({})}>
-              <AddIcon size={22} />
-            </IconButton>
           </div>
         </div>
 
