@@ -10,6 +10,7 @@ import AirportSequenceRestrictionOnFlightsChecker from './checkers/AirportSequen
 import MinimumGroundTimeBetweenFlightsChecker from './checkers/MinimumGroundTimeBetweenFlightsChecker';
 import ValidPeriodCheckOnAircraftsChecker from './checkers/ValidPeriodCheckOnAircraftsChecker';
 import FlightRequirementRestrictionOnFlightsChecker from './checkers/FlightRequirementRestrictionOnFlightsChecker';
+import DisruptionImpactChecker from './checkers/DisruptionImpactChecker';
 import AircraftRestrictionOnAirportsChecker from './checkers/AircraftRestrictionOnAirportsChecker';
 import AirportRestrictionOnAircraftsChecker from './checkers/AirportRestrictionOnAircraftsChecker';
 import BlockTimeRestrictionOnAircraftsChecker from './checkers/BlockTimeRestrictionOnAircraftsChecker';
@@ -123,6 +124,8 @@ export default class ConstraintSystem {
         return new ValidPeriodCheckOnAircraftsChecker(preplan, this, constraintTemplate);
       case 'FLIGHT_REQUIREMENT_RESTRICTION_ON_FLIGHTS':
         return new FlightRequirementRestrictionOnFlightsChecker(preplan, this, constraintTemplate);
+      case 'DISRUPTION_IMPACT_ON_FLIGHTS':
+        return new DisruptionImpactChecker(preplan, this, constraintTemplate);
       default:
         throw 'Unsupported constraint template.';
     }
