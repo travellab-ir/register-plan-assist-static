@@ -243,13 +243,13 @@ const useStyles = makeStyles((theme: Theme) => ({
     position: 'relative',
     display: 'flex',
     marginBottom: theme.spacing(1.5),
-    borderRadius: theme.spacing(1.5),
+    borderRadius: theme.spacing(2),
     border: `1px solid ${theme.palette.grey[200]}`,
-    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.06)',
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
     overflow: 'hidden',
-    transition: 'box-shadow 150ms ease, border-color 150ms ease',
+    transition: 'box-shadow 150ms ease, border-color 150ms ease, transform 150ms ease',
     '&:hover': {
-      boxShadow: '0 8px 20px rgba(15, 23, 42, 0.1)',
+      boxShadow: '0 12px 24px rgba(15, 23, 42, 0.1)',
       borderColor: theme.palette.grey[300]
     },
     '&:active': {
@@ -275,9 +275,9 @@ const useStyles = makeStyles((theme: Theme) => ({
     minWidth: 0
   },
   preplanCardContent: {
-    paddingBottom: theme.spacing(1),
+    padding: theme.spacing(2, 2, 1.25, 2),
     '&:last-child': {
-      paddingBottom: theme.spacing(1)
+      paddingBottom: theme.spacing(1.25)
     }
   },
   preplanCardTitleRow: {
@@ -350,42 +350,63 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: theme.spacing(1),
-    paddingTop: theme.spacing(1),
+    gap: theme.spacing(1),
+    marginTop: theme.spacing(1.25),
+    padding: theme.spacing(1.25, 2),
+    backgroundColor: theme.palette.grey[50],
     borderTop: `1px solid ${theme.palette.grey[100]}`
   },
   publishToggleGroup: {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing(0.5)
+    gap: theme.spacing(0.75)
   },
   publishToggleLabel: {
     fontSize: '0.75rem',
     fontWeight: 600,
     color: theme.palette.text.secondary
   },
+  // A row of individually-bordered, square icon buttons — the standard
+  // "outline icon button" pattern from current design systems (Radix/
+  // shadcn, Linear, Vercel) — replaces the old pill-shaped tray of bare
+  // circular icons, which read as a leftover default rather than a
+  // deliberate control group.
   cardActionIcons: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 2,
-    padding: 3,
-    borderRadius: 999,
-    backgroundColor: theme.palette.grey[50],
-    border: `1px solid ${theme.palette.grey[200]}`
+    gap: theme.spacing(0.75)
   },
   cardActionIconButton: {
-    borderRadius: '50%',
+    width: 34,
+    height: 34,
+    padding: 0,
+    borderRadius: theme.spacing(1),
+    backgroundColor: theme.palette.common.white,
+    border: `1px solid ${theme.palette.grey[300]}`,
     color: theme.palette.grey[700],
-    transition: 'background-color 150ms ease, color 150ms ease',
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+    transition: 'background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease',
     '&:hover': {
-      backgroundColor: 'rgba(89, 107, 236, 0.1)',
-      color: theme.palette.primary.main
+      backgroundColor: 'rgba(89, 107, 236, 0.06)',
+      borderColor: theme.palette.primary.main,
+      color: theme.palette.primary.main,
+      boxShadow: '0 2px 6px rgba(89, 107, 236, 0.18)'
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${theme.palette.primary.main}`,
+      outlineOffset: 2
     }
   },
   cardActionIconButtonDanger: {
     '&:hover': {
-      backgroundColor: 'rgba(211, 47, 47, 0.1)',
-      color: theme.palette.error.main
+      backgroundColor: 'rgba(211, 47, 47, 0.06)',
+      borderColor: theme.palette.error.main,
+      color: theme.palette.error.main,
+      boxShadow: '0 2px 6px rgba(211, 47, 47, 0.18)'
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${theme.palette.error.main}`,
+      outlineOffset: 2
     }
   },
   statusChip: {
