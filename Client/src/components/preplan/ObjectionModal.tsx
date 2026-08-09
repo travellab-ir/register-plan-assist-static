@@ -1,8 +1,10 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useContext } from 'react';
 import { Theme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import BaseModal, { BaseModalProps, useModalState, createModal } from 'src/components/BaseModal';
 import Objectionable from 'src/business/constraints/Objectionable';
+import ObjectionList from 'src/components/preplan/ObjectionList';
+import { PreplanContext } from 'src/pages/preplan';
 
 const useStyles = makeStyles((theme: Theme) => ({}));
 
@@ -12,12 +14,16 @@ export interface ObjectionModalState {
 
 export interface ObjectionModalProps extends BaseModalProps<ObjectionModalState> {}
 
-const ObjectionModal = createModal<ObjectionModalState, ObjectionModalProps>(({ state, ...others }) => {
+const ObjectionModal = createModal<ObjectionModalState, ObjectionModalProps>(({ state, onClose, ...others }) => {
   const classes = useStyles();
+  const preplan = useContext(PreplanContext);
+
+  const objections = state.target ? preplan.constraintSystem.getObjectionsByTargets(state.target) : [];
 
   return (
     <BaseModal
       {...others}
+      onClose={onClose}
       title={state.target ? `The list of objections on ${state.target.marker}:` : ''}
       actions={[
         {
@@ -26,7 +32,7 @@ const ObjectionModal = createModal<ObjectionModalState, ObjectionModalProps>(({ 
           canceler: true
         }
       ]}
-      body={() => <Fragment>TODO: The list of objections...</Fragment>}
+      body={() => <Fragment>{objections.length > 0 ? <ObjectionList objections={objections} onClick={() => onClose()} /> : <Fragment>No objections.</Fragment>}</Fragment>}
     />
   );
 });
