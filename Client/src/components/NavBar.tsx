@@ -7,19 +7,21 @@ import LinkIconButton from './LinkIconButton';
 import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme: Theme) => ({
+  // Flat grey banner replaced with a clean white surface: a hairline
+  // border does the separating instead of a filled background, so this
+  // bar reads as part of the page (like the AppBar above it) rather than
+  // a second, competing toolbar stacked underneath it.
   root: {
-    borderBottom: '1px solid',
-    borderBottomColor: theme.palette.grey[500],
-    backgroundColor: theme.palette.grey[300],
+    borderBottom: `1px solid ${theme.palette.grey[200]}`,
+    backgroundColor: theme.palette.common.white,
     margin: 0,
-    padding: theme.spacing(0.5),
-    paddingRight: theme.spacing(3),
-    paddingLeft: theme.spacing(3),
+    padding: theme.spacing(1.25, 3),
     display: 'flex',
     alignItems: 'center',
+    minHeight: 56,
     [theme.breakpoints.down('xs')]: {
-      paddingRight: theme.spacing(1),
-      paddingLeft: theme.spacing(1)
+      paddingRight: theme.spacing(2),
+      paddingLeft: theme.spacing(2)
     }
   },
   // No longer absolutely positioned: it now takes its natural place in the
@@ -39,13 +41,24 @@ const useStyles = makeStyles((theme: Theme) => ({
     }
   },
   navigationItem: {
-    flexShrink: 0
+    flexShrink: 0,
+    fontWeight: 700,
+    color: theme.palette.text.primary
+  },
+  navigationItemLink: {
+    fontWeight: 600,
+    color: theme.palette.text.secondary,
+    transition: 'color 120ms ease',
+    '&:hover': {
+      color: theme.palette.primary.main
+    }
   },
   navigationNextIcon: {
     position: 'relative',
     top: '6px',
     margin: theme.spacing(0, 0.5),
-    flexShrink: 0
+    flexShrink: 0,
+    color: theme.palette.text.disabled
   },
   tools: {
     float: 'right'
@@ -53,6 +66,16 @@ const useStyles = makeStyles((theme: Theme) => ({
   grow: {
     flexGrow: 1,
     minWidth: theme.spacing(2)
+  },
+  backButton: {
+    marginInlineEnd: theme.spacing(1),
+    color: theme.palette.text.secondary,
+    borderRadius: theme.spacing(1),
+    transition: 'background-color 150ms ease, color 150ms ease',
+    '&:hover': {
+      backgroundColor: theme.palette.grey[100],
+      color: theme.palette.primary.main
+    }
   }
 }));
 
@@ -75,19 +98,16 @@ const NavBar: FC<NavBarProps> = ({ children, backLink, navBarLinks, backTitle })
     <Box display="block" displayPrint="none">
       <Toolbar className={classes.root} variant="dense">
         {backLink && (
-          <LinkIconButton to={backLink} color="inherit" title={backTitle}>
-            <BackIcon />
+          <LinkIconButton className={classes.backButton} to={backLink} title={backTitle}>
+            <BackIcon size={20} />
           </LinkIconButton>
-          // <IconButton color="inherit" title={backTitle} onClick={() => history.goBack() /* history.push(backLink) */}>
-          //   <BackIcon />
-          // </IconButton>
         )}
         <div className={classes.navigation}>
           {(navBarLinks.filter(Boolean) as NavBarLink[]).map((navBarLink, index) => (
             <Fragment key={index}>
-              {index > 0 && <NavigateNextIcon className={classes.navigationNextIcon} />}
+              {index > 0 && <NavigateNextIcon size={16} className={classes.navigationNextIcon} />}
               {navBarLink.link ? (
-                <LinkTypography classes={{ root: classes.navigationItem }} variant="h6" display="inline" to={navBarLink.link as string}>
+                <LinkTypography classes={{ root: classes.navigationItemLink }} variant="h6" display="inline" to={navBarLink.link as string}>
                   {navBarLink.title}
                 </LinkTypography>
               ) : (
