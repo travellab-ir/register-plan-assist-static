@@ -46,9 +46,7 @@ export default class ConstraintSystem {
   constructor(readonly preplan: Preplan, oldConstraintSystem?: ConstraintSystem) {
     this.checkers = [
       ...MasterData.all.constraintTemplates.items.filter(t => !t.instantiable).map(t => this.createCheckerFromNonInstantiableConstraintTemplate(preplan, t)),
-      ...MasterData.all.constraints.items
-        .filter(c => true /*TODO: See if the scope of this constraint overlaps the intended preplan */)
-        .map(c => this.createCheckerFromConstraint(preplan, c))
+      ...MasterData.all.constraints.items.filter(c => this.constraintScopeOverlapsPreplan(c, preplan)).map(c => this.createCheckerFromConstraint(preplan, c))
     ];
 
     const flightLegEventsByAircraftRegisterId: { [aircraftRegisterId: string]: FlightLegEvent[] } = (this.flightLegEventsByAircraftRegisterId = {});
@@ -92,6 +90,25 @@ export default class ConstraintSystem {
       objection.targetId in objectionsByTarget[targetConstructor] || (objectionsByTarget[targetConstructor][objection.targetId] = []);
       objectionsByTarget[targetConstructor][objection.targetId].push(objection);
     });
+  }
+
+  /**
+   * Returns true iff the given constraint's scope (date range and/or season type) has any
+   * overlap with the preplan's own date range. A constraint with no date restriction and no
+   * season type in its scope always overlaps.
+   */
+  private constraintScopeOverlapsPreplan(constraint: Constraint, preplan: Preplan): boolean {
+    const scope = constraint.scope;
+    if (scope.fromDate || scope.toDate) {
+      const fromDate = scope.fromDate ?? preplan.startDate;
+      const toDate = scope.toDate ?? preplan.endDate;
+      if (!Date.intervalOverlaps(fromDate, toDate, preplan.startDate, preplan.endDate)) return false;
+    }
+    if (scope.seasonType) {
+      const seasonsOfType = MasterData.all.seasons.items.filter(s => s.seasonType === scope.seasonType);
+      if (seasonsOfType.length > 0 && !seasonsOfType.some(s => Date.intervalOverlaps(s.startDate, s.endDate, preplan.startDate, preplan.endDate))) return false;
+    }
+    return true;
   }
 
   private createCheckerFromNonInstantiableConstraintTemplate(preplan: Preplan, constraintTemplate: ConstraintTemplate): Checker {
