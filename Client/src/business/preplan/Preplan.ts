@@ -11,6 +11,7 @@ import { dataTypes } from 'src/utils/DataType';
 import Week, { Weeks } from 'src/business/Week';
 import FlightView from 'src/business/flight/FlightView';
 import FlightPackView from 'src/business/flight/FlightPackView';
+import DisruptionEvent from 'src/business/preplan/DisruptionEvent';
 
 export default class Preplan {
   readonly id: Id;
@@ -59,6 +60,12 @@ export default class Preplan {
   readonly flightRequirements: readonly FlightRequirement[];
   readonly flights: readonly Flight[];
 
+  /**
+   * The active/known operational disruptions (AOG, airport closures, etc.) declared for this preplan.
+   * Consumed by DisruptionImpactChecker to flag any flight leg overlapping one of them.
+   */
+  readonly disruptionEvents: readonly DisruptionEvent[];
+
   readonly flightLegs: readonly FlightLeg[];
   readonly flightsByAircraftRegisterId: { readonly [aircraftRegisterId: string]: readonly Flight[] };
   readonly flightLegsByAircraftRegisterId: { readonly [aircraftRegisterId: string]: readonly FlightLeg[] };
@@ -87,6 +94,7 @@ export default class Preplan {
       description: dataTypes.name.convertModelToBusiness(version.description)
     }));
     this.aircraftRegisters = new PreplanAircraftRegisters(raw.preplan.dummyAircraftRegisters, raw.preplan.aircraftRegisterOptions, this);
+    this.disruptionEvents = (raw.disruptionEvents ?? []).map(d => new DisruptionEvent(d, this.aircraftRegisters));
     this.flightRequirements = raw.flightRequirements.map(f => new FlightRequirement(f, this.aircraftRegisters));
     const flightRequirementDictionary = this.flightRequirements.toDictionary('id');
     this.flights = raw.flights.map(f => {
