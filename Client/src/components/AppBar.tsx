@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import classNames from 'classnames';
 import persistant from 'src/utils/persistant';
+import RequestManager from 'src/utils/RequestManager';
 import config from 'src/config';
 import { useIsCompact } from 'src/utils/useResponsive';
 
@@ -246,14 +247,21 @@ const AppBar: FC<AppBarProps> = ({ loading }) => {
             PaperProps={{ className: classes.menuPaper }}
           >
             <MenuItem
-              onClick={() => {
+              onClick={async () => {
                 setUserDisplayNameMenuModel({ open: false });
+                try {
+                  await RequestManager.request('oauth', 'logout');
+                } catch (reason) {
+                  // Even if the server call fails (e.g. token already expired, network error),
+                  // still clear the local session and send the user back to the login page.
+                  console.error('Logout API call failed', reason);
+                }
                 delete persistant.oauthCode;
                 delete persistant.refreshToken;
                 delete persistant.user;
                 delete persistant.userSettings;
                 delete persistant.encodedAuthenticationHeader;
-                window.location.reload(); //TODO: Call logout API instead.
+                window.location.reload();
               }}
             >
               <ListItemIcon className={classes.menuIcon}>
