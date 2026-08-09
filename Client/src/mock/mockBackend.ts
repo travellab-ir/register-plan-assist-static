@@ -46,7 +46,7 @@
 // 1) Seed a fake logged-in session in localStorage (bypasses OAuth redirect)
 // ---------------------------------------------------------------------------
 
-const fakeUser = { id: 'user-1', name: 'demo.user', displayName: 'کاربر دمو' };
+const fakeUser = { id: 'user-1', name: 'demo.user', displayName: 'Demo User' };
 
 const fakeUserSettings = {
   stcColors: { PAX: '#3f51b5', CARGO: '#8e24aa', DEAD: '#757575' }
@@ -140,7 +140,7 @@ const preplanId = 'preplan-1';
 
 const preplanHeader = {
   id: preplanId,
-  name: 'برنامه نمونه — تابستان ۱۴۰۳',
+  name: 'Sample Preplan — Summer 1403',
   published: false,
   accepted: false,
   user: fakeUser,
@@ -153,7 +153,7 @@ const preplanVersion = {
   id: 'version-1',
   current: true,
   lastEditDateTime: new Date().toISOString(),
-  description: 'نسخه اولیه'
+  description: 'Initial version'
 };
 
 const preplan = {
@@ -174,7 +174,7 @@ const flightRequirements = [
     stcId: 'PAX',
     aircraftSelection: { includedIdentities: [{ type: 'TYPE', entityId: 'A300' }], excludedIdentities: [] },
     rsx: 'REAL',
-    notes: 'پرواز نمونه تهران - مشهد',
+    notes: 'Sample flight Tehran - Mashhad',
     ignored: false,
     localTime: true,
     route: [
@@ -280,7 +280,7 @@ window.fetch = async (input: RequestInfo, init?: RequestInit): Promise<Response>
         ...preplanHeaders,
         {
           id: newId,
-          name: body.newPreplanHeader?.name || 'برنامه جدید',
+          name: body.newPreplanHeader?.name || 'New Preplan',
           published: false,
           accepted: false,
           user: fakeUser,
