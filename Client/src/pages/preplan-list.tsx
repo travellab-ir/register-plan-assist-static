@@ -1,7 +1,21 @@
 import React, { Fragment, useState, FC, useEffect } from 'react';
 import { Theme, IconButton, Paper, Tab, Tabs, Table, TableBody, TableCell, TableHead, TableRow, Typography, CircularProgress, Card, CardContent, Chip } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { CheckCheck as FinilizedIcon, Plus as AddIcon, Pencil as EditIcon, X as ClearIcon, Copy as CopyIcon, Users as PublicIcon, User as UserIcon } from 'lucide-react';
+import {
+  CheckCheck as FinilizedIcon,
+  Plus as AddIcon,
+  Pencil as EditIcon,
+  X as ClearIcon,
+  Copy as CopyIcon,
+  Users as PublicIcon,
+  User as UserIcon,
+  CalendarRange as PreplanIcon,
+  Inbox as EmptyIcon,
+  GitBranch as CopySourceIcon,
+  Clock as ModifiedIcon,
+  CalendarPlus as CreatedIcon,
+  FlaskConical as SimulationIcon
+} from 'lucide-react';
 import Search, { filterOnProperties } from 'src/components/Search';
 import NavBar from 'src/components/NavBar';
 import persistant from 'src/utils/persistant';
@@ -31,6 +45,39 @@ const useStyles = makeStyles((theme: Theme) => ({
       paddingLeft: theme.spacing(1),
       paddingRight: theme.spacing(1)
     }
+  },
+  // A real page header — title + live count — instead of dropping straight
+  // into the toolbar. Gives the eye somewhere to land before it has to
+  // start scanning controls, and turns "no data yet" into "0 preplans"
+  // rather than an unexplained empty list.
+  pageHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1.5),
+    paddingTop: theme.spacing(3),
+    [theme.breakpoints.down('xs')]: {
+      paddingTop: theme.spacing(2)
+    }
+  },
+  pageHeaderIcon: {
+    flexShrink: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: theme.spacing(1.5),
+    backgroundImage: 'linear-gradient(135deg, #596BEC, #4338CA)',
+    color: theme.palette.common.white,
+    boxShadow: '0 6px 16px rgba(67, 56, 202, 0.28)'
+  },
+  pageTitle: {
+    fontWeight: 800,
+    lineHeight: 1.2
+  },
+  pageSubtitle: {
+    color: theme.palette.text.secondary,
+    marginTop: 2
   },
   // Tabs + Search + Add button used to be crammed in one row (fine on a
   // wide screen, but the search box would get squeezed to nothing on a
@@ -140,15 +187,42 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginLeft: -12
   },
   waitingPaper: {
-    height: waitingPaperSize,
+    minHeight: waitingPaperSize,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: theme.spacing(1.5),
     backgroundColor: theme.palette.grey[50],
     border: `1px dashed ${theme.palette.grey[300]}`,
     boxShadow: 'none'
   },
-  waitingPaperMessage: {
-    lineHeight: `${waitingPaperSize}px`,
-    color: theme.palette.text.secondary
+  // Replaces a single centered line of grey text with an icon + heading +
+  // helper copy — an empty list should read as "start here", not as a
+  // rendering glitch.
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    padding: theme.spacing(4, 2)
+  },
+  emptyStateIcon: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    backgroundColor: theme.palette.grey[100],
+    color: theme.palette.text.disabled,
+    marginBottom: theme.spacing(1.5)
+  },
+  emptyStateTitle: {
+    fontWeight: 700
+  },
+  emptyStateSubtitle: {
+    color: theme.palette.text.secondary,
+    marginTop: theme.spacing(0.5)
   },
   messagePosition: {
     paddingTop: 40
@@ -188,13 +262,13 @@ const useStyles = makeStyles((theme: Theme) => ({
   // neutral slate for private drafts — before any text registers.
   preplanCardRail: {
     flexShrink: 0,
-    width: 4
+    width: 5
   },
   preplanCardRailPublished: {
-    backgroundColor: theme.palette.secondary.main
+    backgroundImage: 'linear-gradient(180deg, #22D3EE, #00838F)'
   },
   preplanCardRailPrivate: {
-    backgroundColor: theme.palette.grey[300]
+    backgroundColor: theme.palette.grey[200]
   },
   preplanCardBody: {
     flexGrow: 1,
@@ -215,8 +289,19 @@ const useStyles = makeStyles((theme: Theme) => ({
   preplanCardTitleGroup: {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing(0.75),
+    gap: theme.spacing(1),
     minWidth: 0
+  },
+  cardIconAvatar: {
+    flexShrink: 0,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: theme.spacing(1),
+    backgroundColor: 'rgba(89, 107, 236, 0.1)',
+    color: theme.palette.primary.main
   },
   preplanCardTitle: {
     fontWeight: 700,
@@ -234,25 +319,32 @@ const useStyles = makeStyles((theme: Theme) => ({
     gap: theme.spacing(0.5),
     marginTop: theme.spacing(0.25)
   },
+  // Icon + value pairs read left-to-right at a glance, the way a modern
+  // list/table row does — the old uppercase micro-label above each value
+  // forced two vertical reads per fact and felt like a printed form.
   preplanCardMeta: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: theme.spacing(0.25, 2),
+    alignItems: 'center',
+    gap: theme.spacing(0.5, 1.75),
     marginTop: theme.spacing(1)
   },
   preplanCardMetaItem: {
-    minWidth: '40%'
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: theme.spacing(0.5),
+    color: theme.palette.text.secondary
+  },
+  preplanCardMetaIcon: {
+    flexShrink: 0,
+    color: theme.palette.text.disabled
   },
   metaLabel: {
-    display: 'block',
-    fontSize: '0.6875rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    color: theme.palette.text.disabled
+    display: 'none'
   },
   metaValue: {
     fontSize: '0.8125rem',
-    color: theme.palette.text.primary
+    color: theme.palette.text.secondary
   },
   preplanCardActions: {
     display: 'flex',
@@ -297,18 +389,37 @@ const useStyles = makeStyles((theme: Theme) => ({
     }
   },
   statusChip: {
-    height: 20,
+    height: 22,
     fontSize: '0.6875rem',
     fontWeight: 700,
-    letterSpacing: '0.02em'
+    letterSpacing: '0.02em',
+    paddingLeft: 2,
+    '& .MuiChip-label': {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 5,
+      paddingLeft: 6
+    }
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    flexShrink: 0
   },
   statusChipPublished: {
     backgroundColor: 'rgba(0, 188, 212, 0.14)',
-    color: '#00838F'
+    color: '#00838F',
+    '& $statusDot': {
+      backgroundColor: '#00BCD4'
+    }
   },
   statusChipPrivate: {
     backgroundColor: theme.palette.grey[100],
-    color: theme.palette.text.secondary
+    color: theme.palette.text.secondary,
+    '& $statusDot': {
+      backgroundColor: theme.palette.grey[400]
+    }
   },
   tablePaper: {
     borderRadius: theme.spacing(1.5),
@@ -396,6 +507,19 @@ const PreplanListPage: FC = () => {
       />
 
       <div className={classes.contentPage}>
+        <div className={classes.pageHeader}>
+          <span className={classes.pageHeaderIcon} aria-hidden="true">
+            <PreplanIcon size={22} />
+          </span>
+          <div>
+            <Typography variant="h5" className={classes.pageTitle}>
+              Preplans
+            </Typography>
+            <Typography variant="body2" className={classes.pageSubtitle}>
+              {visibleHeaders.length} {tab === 'USER' ? 'in your workspace' : 'shared publicly'}
+            </Typography>
+          </div>
+        </div>
         <div className={classes.headerControls}>
           <Tabs
             value={tab}
@@ -438,14 +562,22 @@ const PreplanListPage: FC = () => {
                     <CardContent className={classes.preplanCardContent} onClick={() => history.push('preplan/' + preplanHeader.current.id)}>
                       <div className={classes.preplanCardTitleRow}>
                         <div className={classes.preplanCardTitleGroup}>
-                          {preplanHeader.accepted && <FinilizedIcon size={17} className={classes.finalizedIcon} />}
+                          <span className={classes.cardIconAvatar} aria-hidden="true">
+                            <PreplanIcon size={16} />
+                          </span>
                           <Typography variant="subtitle1" className={classes.preplanCardTitle}>
                             {preplanHeader.name}
                           </Typography>
+                          {preplanHeader.accepted && <FinilizedIcon size={17} className={classes.finalizedIcon} />}
                         </div>
                         {tab === 'USER' && (
                           <Chip
-                            label={preplanHeader.published ? 'Published' : 'Private'}
+                            label={
+                              <>
+                                <span className={classes.statusDot} aria-hidden="true" />
+                                {preplanHeader.published ? 'Published' : 'Private'}
+                              </>
+                            }
                             size="small"
                             className={classNames(classes.statusChip, preplanHeader.published ? classes.statusChipPublished : classes.statusChipPrivate)}
                           />
@@ -460,37 +592,29 @@ const PreplanListPage: FC = () => {
                         </div>
                       )}
                       <div className={classes.preplanCardMeta}>
-                        <div className={classes.preplanCardMetaItem}>
-                          <Typography component="span" className={classes.metaLabel}>
-                            Last Modified
-                          </Typography>
+                        <div className={classes.preplanCardMetaItem} title="Last Modified">
+                          <ModifiedIcon size={13} className={classes.preplanCardMetaIcon} />
                           <Typography component="span" className={classes.metaValue}>
                             {preplanHeader.current.lastEditDateTime.format('d')}
                           </Typography>
                         </div>
-                        <div className={classes.preplanCardMetaItem}>
-                          <Typography component="span" className={classes.metaLabel}>
-                            Created
-                          </Typography>
+                        <div className={classes.preplanCardMetaItem} title="Created">
+                          <CreatedIcon size={13} className={classes.preplanCardMetaIcon} />
                           <Typography component="span" className={classes.metaValue}>
                             {preplanHeader.creationDateTime.format('d')}
                           </Typography>
                         </div>
                         {preplanHeader.parentPreplanHeader && (
-                          <div className={classes.preplanCardMetaItem}>
-                            <Typography component="span" className={classes.metaLabel}>
-                              Copy Source
-                            </Typography>
+                          <div className={classes.preplanCardMetaItem} title="Copy Source">
+                            <CopySourceIcon size={13} className={classes.preplanCardMetaIcon} />
                             <Typography component="span" className={classes.metaValue}>
                               {preplanHeader.parentPreplanHeader.name}
                             </Typography>
                           </div>
                         )}
                         {preplanHeader.current.simulation && (
-                          <div className={classes.preplanCardMetaItem}>
-                            <Typography component="span" className={classes.metaLabel}>
-                              Simulation
-                            </Typography>
+                          <div className={classes.preplanCardMetaItem} title="Simulation">
+                            <SimulationIcon size={13} className={classes.preplanCardMetaIcon} />
                             <Typography component="span" className={classes.metaValue}>
                               {preplanHeader.current.simulation.name}
                             </Typography>
@@ -636,13 +760,25 @@ const PreplanListPage: FC = () => {
             </Paper>
           )
         ) : (
-          <Paper className={classes.waitingPaper}>
+          <Paper className={classes.waitingPaper} elevation={0}>
             {preplanLoading ? (
-              <CircularProgress size={24} className={classes.progress} />
+              <CircularProgress size={26} />
             ) : (
-              <Typography align="center" classes={{ root: classes.waitingPaperMessage }}>
-                No preplans
-              </Typography>
+              <div className={classes.emptyState}>
+                <span className={classes.emptyStateIcon} aria-hidden="true">
+                  <EmptyIcon size={24} />
+                </span>
+                <Typography variant="subtitle1" className={classes.emptyStateTitle}>
+                  {query.length > 0 ? 'No matching preplans' : tab === 'USER' ? 'No preplans yet' : 'Nothing public yet'}
+                </Typography>
+                <Typography variant="body2" className={classes.emptyStateSubtitle}>
+                  {query.length > 0
+                    ? 'Try a different search term.'
+                    : tab === 'USER'
+                    ? 'Create your first preplan to get started.'
+                    : 'Preplans other users publish will show up here.'}
+                </Typography>
+              </div>
             )}
           </Paper>
         )}
