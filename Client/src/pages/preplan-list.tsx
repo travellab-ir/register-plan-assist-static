@@ -14,7 +14,9 @@ import {
   GitBranch as CopySourceIcon,
   Clock as ModifiedIcon,
   CalendarPlus as CreatedIcon,
-  FlaskConical as SimulationIcon
+  FlaskConical as SimulationIcon,
+  ListChecks as FlightRequirementsIcon,
+  BarChart3 as ReportsIcon
 } from 'lucide-react';
 import Search, { filterOnProperties } from 'src/components/Search';
 import NavBar from 'src/components/NavBar';
@@ -376,6 +378,39 @@ const useStyles = makeStyles((theme: Theme) => ({
     alignItems: 'center',
     gap: theme.spacing(0.75)
   },
+  // Splits the action tray into two intents: jump straight into a section
+  // of the preplan (left, brand-tinted) vs. manage the preplan header
+  // itself (right, neutral). A hairline divider keeps that distinction
+  // legible without adding a label.
+  cardActionGroups: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: theme.spacing(1)
+  },
+  cardActionDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    minHeight: 20,
+    backgroundColor: theme.palette.grey[200]
+  },
+  sectionShortcutButton: {
+    width: 34,
+    height: 34,
+    padding: 0,
+    borderRadius: theme.spacing(1),
+    backgroundColor: 'rgba(89, 107, 236, 0.08)',
+    color: theme.palette.primary.main,
+    transition: 'background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease',
+    '&:hover': {
+      backgroundColor: 'rgba(89, 107, 236, 0.16)',
+      boxShadow: '0 2px 6px rgba(89, 107, 236, 0.22)',
+      transform: 'translateY(-1px)'
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${theme.palette.primary.main}`,
+      outlineOffset: 2
+    }
+  },
   cardActionIconButton: {
     width: 34,
     height: 34,
@@ -656,35 +691,56 @@ const PreplanListPage: FC = () => {
                       ) : (
                         <span />
                       )}
-                      <div className={classes.cardActionIcons}>
-                        <IconButton
-                          className={classes.cardActionIconButton}
-                          size="small"
-                          title="Copy Preplan"
-                          onClick={() => openClonePreplanHeaderModal({ preplanHeader })}
-                        >
-                          <CopyIcon size={17} />
-                        </IconButton>
-                        {tab === 'USER' && (
-                          <Fragment>
-                            <IconButton
-                              className={classes.cardActionIconButton}
-                              size="small"
-                              title="Edit Preplan"
-                              onClick={() => openEditPreplanHeaderModal({ preplanHeader })}
-                            >
-                              <EditIcon size={17} />
-                            </IconButton>
-                            <IconButton
-                              className={classNames(classes.cardActionIconButton, classes.cardActionIconButtonDanger)}
-                              size="small"
-                              title="Remove Preplan"
-                              onClick={() => openRemovePreplanHeaderModal({ preplanHeader })}
-                            >
-                              <ClearIcon size={17} />
-                            </IconButton>
-                          </Fragment>
-                        )}
+                      <div className={classes.cardActionGroups}>
+                        <div className={classes.cardActionIcons}>
+                          <IconButton
+                            className={classes.sectionShortcutButton}
+                            size="small"
+                            title="Flight Requirements"
+                            onClick={() => history.push(`preplan/${preplanHeader.current.id}/flight-requirement-list`)}
+                          >
+                            <FlightRequirementsIcon size={17} />
+                          </IconButton>
+                          <IconButton
+                            className={classes.sectionShortcutButton}
+                            size="small"
+                            title="Reports"
+                            onClick={() => history.push(`preplan/${preplanHeader.current.id}/reports`)}
+                          >
+                            <ReportsIcon size={17} />
+                          </IconButton>
+                        </div>
+                        <span className={classes.cardActionDivider} aria-hidden="true" />
+                        <div className={classes.cardActionIcons}>
+                          <IconButton
+                            className={classes.cardActionIconButton}
+                            size="small"
+                            title="Copy Preplan"
+                            onClick={() => openClonePreplanHeaderModal({ preplanHeader })}
+                          >
+                            <CopyIcon size={17} />
+                          </IconButton>
+                          {tab === 'USER' && (
+                            <Fragment>
+                              <IconButton
+                                className={classes.cardActionIconButton}
+                                size="small"
+                                title="Edit Preplan"
+                                onClick={() => openEditPreplanHeaderModal({ preplanHeader })}
+                              >
+                                <EditIcon size={17} />
+                              </IconButton>
+                              <IconButton
+                                className={classNames(classes.cardActionIconButton, classes.cardActionIconButtonDanger)}
+                                size="small"
+                                title="Remove Preplan"
+                                onClick={() => openRemovePreplanHeaderModal({ preplanHeader })}
+                              >
+                                <ClearIcon size={17} />
+                              </IconButton>
+                            </Fragment>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -743,35 +799,56 @@ const PreplanListPage: FC = () => {
                       )}
 
                       <TableCell className={classes.preplanTableCell} align="center">
-                        <div className={classes.cardActionIcons} style={{ display: 'inline-flex' }} onClick={e => e.stopPropagation()}>
-                          <IconButton
-                            className={classes.cardActionIconButton}
-                            size="small"
-                            title="Copy Preplan"
-                            onClick={() => openClonePreplanHeaderModal({ preplanHeader })}
-                          >
-                            <CopyIcon size={17} />
-                          </IconButton>
-                          {tab === 'USER' && (
-                            <Fragment>
-                              <IconButton
-                                className={classes.cardActionIconButton}
-                                size="small"
-                                title="Edit Preplan"
-                                onClick={() => openEditPreplanHeaderModal({ preplanHeader })}
-                              >
-                                <EditIcon size={17} />
-                              </IconButton>
-                              <IconButton
-                                className={classNames(classes.cardActionIconButton, classes.cardActionIconButtonDanger)}
-                                size="small"
-                                title="Remove Preplan"
-                                onClick={() => openRemovePreplanHeaderModal({ preplanHeader })}
-                              >
-                                <ClearIcon size={17} />
-                              </IconButton>
-                            </Fragment>
-                          )}
+                        <div className={classes.cardActionGroups} style={{ display: 'inline-flex' }} onClick={e => e.stopPropagation()}>
+                          <div className={classes.cardActionIcons}>
+                            <IconButton
+                              className={classes.sectionShortcutButton}
+                              size="small"
+                              title="Flight Requirements"
+                              onClick={() => history.push(`preplan/${preplanHeader.current.id}/flight-requirement-list`)}
+                            >
+                              <FlightRequirementsIcon size={17} />
+                            </IconButton>
+                            <IconButton
+                              className={classes.sectionShortcutButton}
+                              size="small"
+                              title="Reports"
+                              onClick={() => history.push(`preplan/${preplanHeader.current.id}/reports`)}
+                            >
+                              <ReportsIcon size={17} />
+                            </IconButton>
+                          </div>
+                          <span className={classes.cardActionDivider} aria-hidden="true" />
+                          <div className={classes.cardActionIcons}>
+                            <IconButton
+                              className={classes.cardActionIconButton}
+                              size="small"
+                              title="Copy Preplan"
+                              onClick={() => openClonePreplanHeaderModal({ preplanHeader })}
+                            >
+                              <CopyIcon size={17} />
+                            </IconButton>
+                            {tab === 'USER' && (
+                              <Fragment>
+                                <IconButton
+                                  className={classes.cardActionIconButton}
+                                  size="small"
+                                  title="Edit Preplan"
+                                  onClick={() => openEditPreplanHeaderModal({ preplanHeader })}
+                                >
+                                  <EditIcon size={17} />
+                                </IconButton>
+                                <IconButton
+                                  className={classNames(classes.cardActionIconButton, classes.cardActionIconButtonDanger)}
+                                  size="small"
+                                  title="Remove Preplan"
+                                  onClick={() => openRemovePreplanHeaderModal({ preplanHeader })}
+                                >
+                                  <ClearIcon size={17} />
+                                </IconButton>
+                              </Fragment>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
