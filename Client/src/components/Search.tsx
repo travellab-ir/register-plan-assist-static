@@ -10,17 +10,32 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   space: {
     width: theme.spacing(1)
+  },
+  // Used when Search is embedded inside another bordered/pill container
+  // (e.g. a combined search+action bar): drops its own border and
+  // background so only the outer container's chrome is visible, avoiding
+  // a "box inside a box" look.
+  bareInput: {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: 'transparent'
+    },
+    '& .MuiOutlinedInput-notchedOutline': {
+      border: 'none'
+    }
   }
 }));
 
 export interface SearchProps {
   outlined?: boolean;
+  // Strips the input's own border/background — for use inside a custom
+  // wrapping container that already provides that chrome.
+  borderless?: boolean;
   initialSearch?: string;
   onQueryChange?: (query: ReadonlyArray<string>) => void;
   disabled?: boolean;
 }
 
-const Search: FC<SearchProps> = ({ outlined, initialSearch, onQueryChange, disabled }) => {
+const Search: FC<SearchProps> = ({ outlined, borderless, initialSearch, onQueryChange, disabled }) => {
   const [value, setValue] = useState(initialSearch || '');
 
   useEffect(() => {
@@ -46,6 +61,7 @@ const Search: FC<SearchProps> = ({ outlined, initialSearch, onQueryChange, disab
       )}
       {outlined && (
         <TextField
+          className={borderless ? classes.bareInput : undefined}
           placeholder="Search"
           variant="outlined"
           margin="dense"
